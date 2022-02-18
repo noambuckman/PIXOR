@@ -12,7 +12,7 @@ from torchvision import transforms
 
 #KITTI_PATH = '/home/autoronto/Kitti/object'
 KITTI_PATH = '/mnt/ssd2/od/KITTI'
-KITT_PATH = '/home/data/kitti'
+KITTI_PATH = '/home/data/kitti'
 #KITTI_PATH = 'KITTI'
 
 class KITTI(Dataset):
@@ -71,7 +71,7 @@ class KITTI(Dataset):
             path = os.path.join(path, "train.txt")
         else:
             path = os.path.join(path, "val.txt")
-
+        assert os.path.isfile(path), path
         with open(path, 'r') as f:
             lines = f.readlines() # get rid of \n symbol
             names = []
@@ -85,7 +85,7 @@ class KITTI(Dataset):
                 names.append(last)
             # print(names[-1])
             print("There are {} images in txt file".format(len(names)))
-
+            
             return names
     
     def interpret_kitti_label(self, bbox):
@@ -197,8 +197,9 @@ class KITTI(Dataset):
 
     def load_velo_scan(self, item):
         """Helper method to parse velodyne binary files into a list of scans."""
+        print(item)
         filename = self.velo[item]
-
+        assert os.path.isfile(filename), filename
         if self.use_npy:
             scan = np.load(filename[:-4]+'.npy')
         else:
@@ -217,7 +218,10 @@ class KITTI(Dataset):
         velo_files = []
         for file in self.image_sets:
             file = '{}.bin'.format(file)
-            velo_files.append(os.path.join(KITTI_PATH, 'training', 'velodyne', file))
+            velo_file_path = os.path.join(KITTI_PATH, 'training', 'velodyne', file)
+            assert os.path.isfile(velo_file_path), velo_file_path
+
+            velo_files.append(velo_file_path)
 
         print('Found ' + str(len(velo_files)) + ' Velodyne scans...')
         # Read the Velodyne scans. Each point is [x,y,z,reflectance]

@@ -214,7 +214,7 @@ def get_points_in_a_rotated_box(corners, label_shape=[200, 175]):
 
     return pixels
 
-def load_config(exp_name):
+def load_config(exp_name, parent_dir=""):
     """ Loads the configuration file
 
      Args:
@@ -227,7 +227,7 @@ def load_config(exp_name):
          target_classes: A list of strings denoting the classes to
                         build the classifer for
      """
-    path = os.path.join('experiments', exp_name, 'config.json')
+    path = os.path.join(parent_dir, 'experiments', exp_name, 'config.json')
     with open(path) as file:
         config = json.load(file)
 
@@ -239,7 +239,7 @@ def load_config(exp_name):
 
     return config, learning_rate, batch_size, max_epochs
 
-def get_model_name(config, epoch=None):
+def get_model_name(config, epoch=None, parent_dir=""):
     """ Generate a name for the model consisting of all the hyperparameter values
 
     Args:
@@ -256,7 +256,7 @@ def get_model_name(config, epoch=None):
     if epoch is None:
         epoch = config['resume_from']
 
-    folder = os.path.join("experiments", name)
+    folder = os.path.join(parent_dir, "experiments", name)
     if not os.path.exists(folder):
         os.makedirs(folder)
 

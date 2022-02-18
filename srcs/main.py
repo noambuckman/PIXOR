@@ -302,6 +302,7 @@ def eval_one(net, loss_fn, config, loader, image_id, device, plot=False, verbose
     # Filter Predictions
     t_start = time.time()
     corners, scores = filter_pred(config, pred)
+    print(corners)
     t_post = time.time() - t_start
 
     if verbose:
@@ -355,7 +356,7 @@ def experiment(exp_name, device, eval_range='all', plot=True):
     plot_pr_curve(val_precisions, val_recalls, legend, name=fig_name)
 
 
-def test(exp_name, device, image_id):
+def test(exp_name, device, image_id, plot_flag=True):
     config, _, _, _ = load_config(exp_name)
     net, loss_fn = build_model(config, device, train=False)
     net.load_state_dict(torch.load(get_model_name(config), map_location=device))
@@ -366,8 +367,10 @@ def test(exp_name, device, image_id):
 
     with torch.no_grad():
         num_gt, num_pred, scores, pred_image, pred_match, loss, t_forward, t_nms = \
-            eval_one(net, loss_fn, config, train_loader, image_id, device, plot=True)
-
+            eval_one(net, loss_fn, config, train_loader, image_id, device, plot=plot_flag)
+        print("Num GT %d,  Num Pred: %d"%(num_gt, num_pred))
+        print("scores:")
+        print(scores)
         TP = (pred_match != -1).sum()
         print("Loss: {:.4f}".format(loss))
         print("Precision: {:.2f}".format(TP/num_pred))
@@ -382,7 +385,9 @@ if __name__ == "__main__":
     parser.add_argument('--name', required=True, help="name of the experiment")
     parser.add_argument('--device', default='cpu', help='device to train on')
     parser.add_argument('--eval_range', type=int, help="range of evaluation")
-    parser.add_argument('--test_id', type=int, default=25, help="id of the image to test")
+    parser.add_argument('--test_id', type=int, default=0, help="id of the image to test")
+    parser.add_argument('--plot_flag', action='store_true', help="plot results")
+
     args = parser.parse_args()
 
 
@@ -398,6 +403,6 @@ if __name__ == "__main__":
             args.eval_range='all'
         experiment(args.name, device, eval_range=args.eval_range, plot=False)
     if args.mode=='test':
-        test(args.name, device, image_id=args.test_id)
+        test(args.name, device, image_id=args.test_id, plot_flag=args.plot_flag)
 
     # before launching the program! CUDA_VISIBLE_DEVICES=0, 1 python main.py .......

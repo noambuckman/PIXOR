@@ -221,10 +221,16 @@ class Decoder(nn.Module):
     def __init__(self, geom):
         super(Decoder, self).__init__()
         self.geometry = [geom["L1"], geom["L2"], geom["W1"], geom["W2"]]
-        self.grid_size = 0.4
+        
+        # self.grid_size = 4 * geom["dx"]
+             
+        # cost\theta, sin\theta, dx, dy, log(w), log(l)  
+        # self.target_mean = [0.008, 0.001, 0.202, 0.2, 0.43, 1.368]
+        # self.target_std_dev = [0.866, 0.5, 0.954, 0.668, 0.09, 0.111]        
+        # scale all the metrix dimensions by 10
+        self.target_mean = [0.008, 0.001, 0.02, 0.02, 0.43 - 2.302, 1.368 - 2.302]
+        self.target_std_dev = [0.866, 0.5, 0.09, 0.06,  0.09 - 2.302, 0.111 - 2.302]
 
-        self.target_mean = [0.008, 0.001, 0.202, 0.2, 0.43, 1.368]
-        self.target_std_dev = [0.866, 0.5, 0.954, 0.668, 0.09, 0.111]
 
     def forward(self, x):
         '''
@@ -254,13 +260,22 @@ class Decoder(nn.Module):
         cos_t = torch.cos(theta)
         sin_t = torch.sin(theta)
 
-        x = torch.arange(self.geometry[2], self.geometry[3], self.grid_size, dtype=torch.float32, device=device)
-        y = torch.arange(self.geometry[0], self.geometry[1], self.grid_size, dtype=torch.float32, device=device)
+
+        x_grid_size = (self.geometry[3] - self.geometry[2]) / (1.0 * x.shape[3])
+        y_grid_size = (self.geometry[1] - self.geometry[0]) / (1.0 * x.shape[2])
+
+        x = torch.arange(self.geometry[2], self.geometry[3], x_grid_size, dtype=torch.float32, device=device)
+        y = torch.arange(self.geometry[0], self.geometry[1], y_grid_size, dtype=torch.float32, device=device)
+        
+       
+        
+        
         yy, xx = torch.meshgrid([y, x])
         centre_y = yy + dy
         centre_x = xx + dx
         l = log_l.exp()
         w = log_w.exp()
+
         rear_left_x = centre_x - l/2 * cos_t - w/2 * sin_t
         rear_left_y = centre_y - l/2 * sin_t + w/2 * cos_t
         rear_right_x = centre_x - l/2 * cos_t + w/2 * sin_t
