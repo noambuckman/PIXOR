@@ -186,7 +186,7 @@ def train(exp_name, device):
                                         geometry=config['geometry'], frame_range=config['frame_range'])
     # Model
     net, loss_fn, optimizer, scheduler = build_model(config, device, train=True)
-
+    print(train_data_loader.dataset.image_sets)
     # Tensorboard Logger
     train_logger = get_logger(config, 'train')
     val_logger = get_logger(config, 'val')
