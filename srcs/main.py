@@ -231,6 +231,8 @@ def train(exp_name, device):
             print("Class Loss", cls)
             print("Loc Loss", loc)
             loss.backward()
+            torch.nn.utils.clip_grad_norm_(net.parameters(), 1.0)
+
             optimizer.step()
             cls_loss += cls
             loc_loss += loc
