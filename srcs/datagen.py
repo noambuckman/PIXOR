@@ -248,7 +248,6 @@ class KITTI(Dataset):
         return velo[indices, :]
 
     def lidar_preprocess(self, scan):
-        print(scan.shape)
         velo_processed = np.zeros(self.geometry['input_shape'], dtype=np.float32)
         intensity_map_count = np.zeros((velo_processed.shape[0], velo_processed.shape[1]))
         velo = self.passthrough(scan)
@@ -258,7 +257,6 @@ class KITTI(Dataset):
         dz = (self.geometry['H2'] - self.geometry['H1']) / (1.0 * (self.geometry['input_shape'][2] - 1))
 
         for i in range(velo.shape[0]):
-            print(velo.shape)
             x = int((velo[i, 1]-self.geometry['L1']) / dx)
             y = int((velo[i, 0]-self.geometry['W1']) / dy)
             z = int((velo[i, 2]-self.geometry['H1']) / dz)
