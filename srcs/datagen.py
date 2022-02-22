@@ -199,7 +199,6 @@ class KITTI(Dataset):
 
     def load_velo_scan(self, item):
         """Helper method to parse velodyne binary files into a list of scans."""
-        print(item)
         filename = self.velo[item]
         assert os.path.isfile(filename), filename
         if self.use_npy:
