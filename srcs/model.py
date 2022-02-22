@@ -361,7 +361,9 @@ def test_decoder(decode = True):
     print("Testing PIXOR decoder")
     net = PIXOR(geom, use_bn=False)
     net.set_decode(decode)
-    preds = net(torch.autograd.Variable(torch.randn(2, 800, 700, 36)))
+    scan = torch.autograd.Variable(torch.randn(2, 800, 700, 36))
+    scan = scan.permute(0, 3, 1,2 )
+    preds = net(scan)
 
     print("Predictions output size", preds.size())
 
