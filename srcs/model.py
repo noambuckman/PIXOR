@@ -228,8 +228,8 @@ class Decoder(nn.Module):
         # self.target_mean = [0.008, 0.001, 0.202, 0.2, 0.43, 1.368]
         # self.target_std_dev = [0.866, 0.5, 0.954, 0.668, 0.09, 0.111]        
         # scale all the metrix dimensions by 10
-        self.target_mean = [0.008, 0.001, 0.02, 0.02, 0.43 - 2.302, 1.368 - 2.302]
-        self.target_std_dev = [0.866, 0.5, 0.09, 0.06,  0.09 - 2.302, 0.111 - 2.302]
+        self.target_mean = [-0.547, -0.084,  0.199,  0.189, -0.923, -0.635]
+        self.target_std_dev = [0.441, 0.706, 0.061, 0.06 , 0.243, 0.01]
 
 
     def forward(self, x):
