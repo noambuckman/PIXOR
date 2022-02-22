@@ -14,8 +14,8 @@
   "save_every": 2,
   "log_every": 100,
 
-  "use_bn": true,
-  "use_npy": false,
+  "use_bn": false,
+  "use_npy": true,
   "mGPUs": false,
   "frame_range": 10000,
 
@@ -28,8 +28,8 @@
         "L2": 4.0,
         "W1": 0.0,
         "W2": 7.0,
-        "H1": -0.25,
-        "H2": 0.10,
+        "H1": -0.20,
+        "H2": 0.15,
         "input_shape": [800, 700, 36],
         "label_shape": [200, 175, 7]
     }
