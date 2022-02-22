@@ -298,8 +298,10 @@ def test0():
     plot_label_map(label_map[:, :, 6])
 
 
-def find_reg_target_var_and_mean():
+def find_reg_target_var_and_mean(geom=None):
     k = KITTI()
+    if geom is not None:
+        k.geometry = geom
     reg_targets = [[] for _ in range(6)]
     for i in range(len(k)):
         label_map, _ = k.get_label(i)
