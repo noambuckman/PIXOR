@@ -295,11 +295,11 @@ class PIXOR(nn.Module):
     Note that we convert the dimensions to [C, H, W] for PyTorch's nn.Conv2d functions
     '''
 
-    def __init__(self, geom, use_bn=True, decode=False, target_mean=None, target_stdev=None):
+    def __init__(self, geom, use_bn=True, decode=False, target_mean=None, target_std_dev=None):
         super(PIXOR, self).__init__()
         self.backbone = BackBone(Bottleneck, [3, 6, 6, 3], geom, use_bn)
         self.header = Header(use_bn)
-        self.corner_decoder = Decoder(geom, target_mean=target_mean, target_stdev=target_stdev)
+        self.corner_decoder = Decoder(geom, target_mean=target_mean, target_std_dev=target_std_dev)
         self.use_decode = decode
         self.cam_fov_mask = maskFOV_on_BEV(geom['label_shape'])
         

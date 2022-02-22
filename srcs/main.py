@@ -13,8 +13,8 @@ from utils import get_model_name, load_config, get_logger, plot_bev, plot_label_
 from postprocess import filter_pred, compute_matches, compute_ap
 
 
-def build_model(config, device, train=True, target_mean=None, target_std=None):
-    net = PIXOR(config['geometry'], config['use_bn'], target_mean=target_mean, target_std=target_std)
+def build_model(config, device, train=True, target_mean=None, target_std_dev=None):
+    net = PIXOR(config['geometry'], config['use_bn'], target_mean=target_mean, target_std_dev=target_std_dev)
     loss_fn = CustomLoss(device, config, num_classes=1)
 
     if torch.cuda.device_count() <= 1:
