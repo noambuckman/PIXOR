@@ -217,7 +217,6 @@ def train(exp_name, device):
             net.module.set_decode(False)
         else:
             net.set_decode(False)
-        scheduler.step()
 
         for input, label_map, image_id in train_data_loader:
             
@@ -250,6 +249,7 @@ def train(exp_name, device):
 
             step += 1
             #print(time.time() - tic)            
+        scheduler.step()
 
         # Record Training Loss
         train_loss = train_loss / len(train_data_loader)
