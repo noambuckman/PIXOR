@@ -257,6 +257,7 @@ class KITTI(Dataset):
         dz = (self.geometry['H2'] - self.geometry['H1']) / (1.0 * (self.geometry['input_shape'][2] - 1))
 
         for i in range(velo.shape[0]):
+            print(velo.shape)
             x = int((velo[i, 1]-self.geometry['L1']) / dx)
             y = int((velo[i, 0]-self.geometry['W1']) / dy)
             z = int((velo[i, 2]-self.geometry['H1']) / dz)
