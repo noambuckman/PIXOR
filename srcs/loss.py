@@ -34,7 +34,7 @@ class CustomLoss(nn.Module):
         return loss.mean()
 
     def cross_entropy(self, x, y):
-        return F.binary_cross_entropy(input=x, target=y, reduction='elementwise_mean')
+        return F.binary_cross_entropy(input=x, target=y, reduction='mean')
 
 
     def forward(self, preds, targets):
