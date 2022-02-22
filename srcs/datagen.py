@@ -317,8 +317,11 @@ def find_reg_target_var_and_mean():
     print("Stds", stds)
     return means, stds
 
-def preprocess_to_npy(train=True):
+def preprocess_to_npy(train=True, geometry=None):
     k = KITTI(train=train)
+    if geometry is not None:
+        k.geometry = geometry
+    
     k.load_velo()
     for item, name in enumerate(k.velo):
         scan = k.load_velo_scan(item)
