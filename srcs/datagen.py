@@ -208,7 +208,7 @@ class KITTI(Dataset):
             scan = np.zeros(self.geometry['input_shape'], dtype=np.float32)
             c_data = ctypes.c_void_p(scan.ctypes.data)
             self.LidarLib.createTopViewMaps(c_data, c_name)
-            #scan = np.fromfile(filename, dtype=np.float32).reshape(-1, 4)
+            scan = np.fromfile(filename, dtype=np.float32).reshape(-1, 4)
             
         return scan
 
@@ -248,6 +248,7 @@ class KITTI(Dataset):
         return velo[indices, :]
 
     def lidar_preprocess(self, scan):
+        print(scan.shape)
         velo_processed = np.zeros(self.geometry['input_shape'], dtype=np.float32)
         intensity_map_count = np.zeros((velo_processed.shape[0], velo_processed.shape[1]))
         velo = self.passthrough(scan)
