@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import math
-from utils import maskFOV_on_BEV
+from utils import maskFOV_on_BEV, get_discretization_from_geom
 
 
 def conv3x3(in_planes, out_planes, stride=1, bias=False):
@@ -221,7 +221,7 @@ class Decoder(nn.Module):
     def __init__(self, geom):
         super(Decoder, self).__init__()
         self.geometry = [geom["L1"], geom["L2"], geom["W1"], geom["W2"]]
-        
+        self.geometry_dict = geom
         # self.grid_size = 4 * geom["dx"]
              
         # cost\theta, sin\theta, dx, dy, log(w), log(l)  
@@ -260,10 +260,8 @@ class Decoder(nn.Module):
         cos_t = torch.cos(theta)
         sin_t = torch.sin(theta)
 
-
-        x_grid_size = (self.geometry[3] - self.geometry[2]) / (1.0 * x.shape[3])
-        y_grid_size = (self.geometry[1] - self.geometry[0]) / (1.0 * x.shape[2])
-
+        x_grid_size, y_grid_size, _ = get_discretization_from_geom(self.geometry, input_layer=False)
+        
         x = torch.arange(self.geometry[2], self.geometry[3], x_grid_size, dtype=torch.float32, device=device)
         y = torch.arange(self.geometry[0], self.geometry[1], y_grid_size, dtype=torch.float32, device=device)
         

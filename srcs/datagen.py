@@ -6,9 +6,8 @@ import numpy as np
 import time
 import torch
 import ctypes
-from utils import plot_bev, get_points_in_a_rotated_box, plot_label_map, trasform_label2metric
+from utils import load_config, get_discretization_from_geom, plot_bev, get_points_in_a_rotated_box, plot_label_map, transform_metric2label, transform_label2metric
 from torch.utils.data import Dataset, DataLoader
-from torchvision import transforms
 
 #KITTI_PATH = '/home/autoronto/Kitti/object'
 KITTI_PATH = '/mnt/ssd2/od/KITTI'
@@ -18,17 +17,17 @@ KITTI_PATH = 'data/kitti'
 #KITTI_PATH = 'KITTI'
 
 class KITTI(Dataset):
-
-    geometry = {
-        'L1': -40.0,
-        'L2': 40.0,
-        'W1': 0.0,
-        'W2': 70.0,
-        'H1': -2.5,
-        'H2': 1.0,
-        'input_shape': (800, 700, 36),
-        'label_shape': (200, 175, 7)
-    }
+    
+    # geometry = {
+    #     'L1': -40.0,
+    #     'L2': 40.0,
+    #     'W1': 0.0,
+    #     'W2': 70.0,
+    #     'H1': -2.5,
+    #     'H2': 1.0,
+    #     'input_shape': (800, 700, 36),
+    #     'label_shape': (200, 175, 7)
+    # }
 
     target_mean = np.array([0.008, 0.001, 0.202, 0.2, 0.43, 1.368])
     target_std_dev = np.array([0.866, 0.5, 0.954, 0.668, 0.09, 0.111])
@@ -111,7 +110,6 @@ class KITTI(Dataset):
         # y facing to the left of driver
 
         yaw = -(yaw + np.pi / 2)
-        
         #x, y, w, l, yaw = self.interpret_kitti_label(bbox)
         
         bev_corners = np.zeros((4, 2), dtype=np.float32)
@@ -137,15 +135,17 @@ class KITTI(Dataset):
 
 
     def update_label_map(self, map, bev_corners, reg_target):
-        label_corners = (bev_corners / 4 ) / 0.1
-        label_corners[:, 1] += self.geometry['label_shape'][0] / 2
-
+        dx, dy, dz = get_discretization_from_geom(self.geometry, input_layer=False)
+        
+        label_corners = transform_metric2label(bev_corners, dx, dy, self.geometry['label_shape'][0])
+        
         points = get_points_in_a_rotated_box(label_corners, self.geometry['label_shape'])
-
         for p in points:
             label_x = p[0]
             label_y = p[1]
-            metric_x, metric_y = trasform_label2metric(np.array(p))
+
+            metric_x, metric_y = transform_label2metric(np.array(p), dx, dy, self.geometry['label_shape'][0])
+
             actual_reg_target = np.copy(reg_target)
             actual_reg_target[2] = reg_target[2] - metric_x
             actual_reg_target[3] = reg_target[3] - metric_y
@@ -252,9 +252,8 @@ class KITTI(Dataset):
         intensity_map_count = np.zeros((velo_processed.shape[0], velo_processed.shape[1]))
         velo = self.passthrough(scan)
 
-        dx = (self.geometry['L2'] - self.geometry['L1']) / (1.0 * self.geometry['input_shape'][0])
-        dy = (self.geometry['W2'] - self.geometry['W1']) / (1.0 * self.geometry['input_shape'][1])
-        dz = (self.geometry['H2'] - self.geometry['H1']) / (1.0 * (self.geometry['input_shape'][2] - 1))
+
+        dx, dy, dz = get_discretization_from_geom(self.geometry, input_layer=True)
 
         for i in range(velo.shape[0]):
             x = int((velo[i, 1]-self.geometry['L1']) / dx)
@@ -284,17 +283,22 @@ def get_data_loader(batch_size, use_npy, geometry=None, frame_range=10000):
     return train_data_loader, val_data_loader
 
 
-def test0():
+def test0(id=25):
+    config, _,_,_ = load_config("default")
+    
     k = KITTI()
+    k.geometry = config["geometry"]
 
-    id = 25
+    dx, dy, dz = get_discretization_from_geom(config["geometry"])
+    
     k.load_velo()
     tstart = time.time()
     scan = k.load_velo_scan(id)
     processed_v = k.lidar_preprocess(scan)
     label_map, label_list = k.get_label(id)
+    print(label_list)
     print('time taken: %gs' %(time.time()-tstart))
-    plot_bev(processed_v, label_list)
+    plot_bev(processed_v, label_list, geom=config["geometry"])
     plot_label_map(label_map[:, :, 6])
 
 
@@ -356,6 +360,6 @@ def test():
 
 
 if __name__=="__main__":
-    test()
+    test0(id=25)
     #preprocess_to_npy(True)
     #preprocess_to_npy(False)

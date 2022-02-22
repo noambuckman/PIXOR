@@ -3,32 +3,34 @@ import torch.nn
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
-plt.switch_backend('agg')
+# plt.switch_backend('agg')
 import math
 import json
 import os
 import logger
 
-def trasform_label2metric(label, ratio=4, grid_size=0.1, base_height=100):
+def transform_label2metric(label, x_grid_size, y_grid_size, base_height=200):
     '''
     :param label: numpy array of shape [..., 2] of coordinates in label map space
     :return: numpy array of shape [..., 2] of the same coordinates in metric space
     '''
-
     metric = np.copy(label)
-    metric[..., 1] -= base_height
-    metric = metric * grid_size * ratio
 
+    metric[..., 1] = metric[..., 1] - (base_height/2.0)
+    metric[..., 1] = metric[..., 1] * y_grid_size
+    metric[..., 0] = metric[..., 0] * x_grid_size
     return metric
 
-def transform_metric2label(metric, ratio=4, grid_size=0.1, base_height=100):
+def transform_metric2label(metric, x_grid_size, y_grid_size, base_height=100):
     '''
     :param label: numpy array of shape [..., 2] of coordinates in metric space
     :return: numpy array of shape [..., 2] of the same coordinates in label_map space
     '''
+    label = np.copy(metric)
+    label[..., 0] = label[..., 0] / x_grid_size
+    label[..., 1] =  label[..., 1] / y_grid_size
+    label[..., 1] = label[..., 1] + (base_height/2.0)
 
-    label = (metric / ratio ) / grid_size
-    label[..., 1] += base_height
     return label
 
 def maskFOV_on_BEV(shape, fov=88.0):
@@ -56,7 +58,23 @@ def get_logger(config, mode='train'):
         os.makedirs(folder)
     return logger.Logger(folder)
 
-def get_bev(velo_array, label_list = None, scores = None):
+def get_discretization_from_geom(geom, input_layer=True):
+    ''' We assume the input shape has '''
+    if input_layer:
+        xy_grid_shape = geom["input_shape"]
+    else:
+        xy_grid_shape = geom["label_shape"]        
+
+    dy = (geom["L2"] - geom["L1"]) / (1.0 * xy_grid_shape[0])
+    dx = (geom["W2"] - geom["W1"]) / (1.0 * xy_grid_shape[1])
+
+
+    
+    dz = (geom["H2"] - geom["H1"]) / (1.0 * (geom["input_shape"][2] - 1))
+
+    return dx, dy, dz
+
+def get_bev(velo_array, label_list = None, scores = None, dx = 0.1, dy=0.1):
     map_height = velo_array.shape[0]
     intensity = np.zeros((velo_array.shape[0], velo_array.shape[1], 3), dtype=np.uint8)   
      # val = 1 - velo_array[::-1, :, -1]
@@ -65,10 +83,13 @@ def get_bev(velo_array, label_list = None, scores = None):
     intensity[:, :, 1] = val
     intensity[:, :, 2] = val
     # FLip in the x direction
-
+    
     if label_list is not None:
         for corners in label_list:
-            plot_corners = corners / 0.1
+            plot_corners = corners
+            plot_corners[:, 0] = corners[:, 0] / dx
+            plot_corners[:, 1] = corners[:, 1] / dy
+
             plot_corners[:, 1] += int(map_height // 2)
             plot_corners[:, 1] = map_height - plot_corners[:, 1]
             plot_corners = plot_corners.astype(int).reshape((-1, 1, 2))
@@ -77,7 +98,7 @@ def get_bev(velo_array, label_list = None, scores = None):
 
     return intensity
 
-def plot_bev(velo_array, label_list = None, scores = None, window_name='GT', save_path=None):
+def plot_bev(velo_array, label_list = None, scores = None, window_name='GT', save_path=None, geom=None):
     '''
     Plot a Birds Eye View Lidar and Bounding boxes (Using OpenCV!)
     The heading of the vehicle is marked as a red line
@@ -90,8 +111,11 @@ def plot_bev(velo_array, label_list = None, scores = None, window_name='GT', sav
     :param window_name: name of the open_cv2 window
     :return: None
     '''
-
-    intensity = get_bev(velo_array, label_list, scores)
+    if geom is not None:
+        dx, dy, dz = get_discretization_from_geom(geom, input_layer=True)
+    else:
+        dx = dy = dz = 0.1
+    intensity = get_bev(velo_array, label_list, scores, dx, dy)
 
     if save_path != None:
         print(save_path)
