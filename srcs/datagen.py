@@ -13,6 +13,8 @@ from torchvision import transforms
 #KITTI_PATH = '/home/autoronto/Kitti/object'
 KITTI_PATH = '/mnt/ssd2/od/KITTI'
 KITTI_PATH = '/home/data/kitti'
+# KITTI_PATH = '/media/nbuckman/Samsung_S3/racecar_bags/kitti_rc_velodyne_20220202'
+KITTI_PATH = 'data/kitti'
 #KITTI_PATH = 'KITTI'
 
 class KITTI(Dataset):
