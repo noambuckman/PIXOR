@@ -270,17 +270,17 @@ class KITTI(Dataset):
         return velo_processed
 
 
-def get_data_loader(batch_size, use_npy, geometry=None, frame_range=10000, target_mean=None, target_std=None):
-    train_dataset = KITTI(frame_range, use_npy=use_npy, train=True, target_mean=target_mean, target_std=target_std)
+def get_data_loader(batch_size, use_npy, geometry=None, frame_range=10000, target_mean=None, target_std_dev=None):
+    train_dataset = KITTI(frame_range, use_npy=use_npy, train=True, target_mean=target_mean, target_std_dev=target_std_dev)
     if geometry is not None:
         train_dataset.geometry = geometry
     train_dataset.load_velo()
-    train_data_loader = DataLoader(train_dataset, shuffle=True, batch_size=batch_size, num_workers=3,  target_mean=target_mean, target_std=target_std)
+    train_data_loader = DataLoader(train_dataset, shuffle=True, batch_size=batch_size, num_workers=3,  target_mean=target_mean, target_std_dev=target_std_dev)
     val_dataset = KITTI(frame_range, use_npy=use_npy, train=False)
     if geometry is not None:
         val_dataset.geometry = geometry
     val_dataset.load_velo()
-    val_data_loader = DataLoader(val_dataset, shuffle=False, batch_size=batch_size * 4, num_workers=8,  target_mean=target_mean, target_std=target_std)
+    val_data_loader = DataLoader(val_dataset, shuffle=False, batch_size=batch_size * 4, num_workers=8,  target_mean=target_mean, target_std_dev=target_std_dev)
 
     print("------------------------------------------------------------------")
     return train_data_loader, val_data_loader
