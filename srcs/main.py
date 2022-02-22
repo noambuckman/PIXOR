@@ -181,12 +181,12 @@ def train(exp_name, device):
     # Load Hyperparameters
     config, learning_rate, batch_size, max_epochs = load_config(exp_name)
     
-    target_mean, target_std = find_reg_target_var_and_mean(config["geometry"])
+    target_mean, target_std_dev = find_reg_target_var_and_mean(config["geometry"])
     # Dataset and DataLoader
     train_data_loader, test_data_loader = get_data_loader(batch_size, config['use_npy'],
-                                        geometry=config['geometry'], frame_range=config['frame_range'],  target_mean=target_mean, target_std=target_std)
+                                        geometry=config['geometry'], frame_range=config['frame_range'],  target_mean=target_mean, target_std_dev=target_std_dev)
     # Model
-    net, loss_fn, optimizer, scheduler = build_model(config, device, train=True, target_mean=target_mean, target_std=target_std)
+    net, loss_fn, optimizer, scheduler = build_model(config, device, train=True, target_mean=target_mean, target_std_dev=target_std_dev)
 
     # Tensorboard Logger
     train_logger = get_logger(config, 'train')
