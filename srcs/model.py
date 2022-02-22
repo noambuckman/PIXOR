@@ -218,7 +218,7 @@ class Header(nn.Module):
 
 class Decoder(nn.Module):
 
-    def __init__(self, geom):
+    def __init__(self, geom, target_mean = None, target_std_dev=None):
         super(Decoder, self).__init__()
         self.geometry = [geom["L1"], geom["L2"], geom["W1"], geom["W2"]]
         self.geometry_dict = geom
@@ -228,8 +228,8 @@ class Decoder(nn.Module):
         # self.target_mean = [0.008, 0.001, 0.202, 0.2, 0.43, 1.368]
         # self.target_std_dev = [0.866, 0.5, 0.954, 0.668, 0.09, 0.111]        
         # scale all the metrix dimensions by 10
-        self.target_mean = [-0.547, -0.084,  0.199,  0.189, -0.923, -0.635]
-        self.target_std_dev = [0.441, 0.706, 0.061, 0.06 , 0.243, 0.01]
+        self.target_mean = target_mean
+        self.target_std_dev = target_std_dev
 
 
     def forward(self, x):
@@ -295,11 +295,11 @@ class PIXOR(nn.Module):
     Note that we convert the dimensions to [C, H, W] for PyTorch's nn.Conv2d functions
     '''
 
-    def __init__(self, geom, use_bn=True, decode=False):
+    def __init__(self, geom, use_bn=True, decode=False, target_mean=None, target_std=None):
         super(PIXOR, self).__init__()
         self.backbone = BackBone(Bottleneck, [3, 6, 6, 3], geom, use_bn)
         self.header = Header(use_bn)
-        self.corner_decoder = Decoder(geom)
+        self.corner_decoder = Decoder(geom, target_mean=target_mean, target_std=target_std)
         self.use_decode = decode
         self.cam_fov_mask = maskFOV_on_BEV(geom['label_shape'])
         

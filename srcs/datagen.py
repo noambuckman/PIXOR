@@ -29,16 +29,19 @@ class KITTI(Dataset):
     #     'label_shape': (200, 175, 7)
     # }
 
-    target_mean = np.array([0.008, 0.001, 0.202, 0.2, 0.43, 1.368])
-    target_std_dev = np.array([0.866, 0.5, 0.954, 0.668, 0.09, 0.111])
+    # target_mean = np.array([0.008, 0.001, 0.202, 0.2, 0.43, 1.368])
+    # target_std_dev = np.array([0.866, 0.5, 0.954, 0.668, 0.09, 0.111])
 
 
-    def __init__(self, frame_range = 10000, use_npy=False, train=True):
+    def __init__(self, frame_range = 10000, use_npy=False, train=True, target_mean = None, target_std_dev=None):
         self.frame_range = frame_range
         self.velo = []
         self.use_npy = use_npy
         self.LidarLib = ctypes.cdll.LoadLibrary('preprocess/LidarPreprocess.so')
         self.image_sets = self.load_imageset(train) # names
+
+        self.target_mean = target_mean
+        self.target_std_dev = target_std_dev
 
     def __len__(self):
         return len(self.image_sets)
@@ -267,17 +270,17 @@ class KITTI(Dataset):
         return velo_processed
 
 
-def get_data_loader(batch_size, use_npy, geometry=None, frame_range=10000):
-    train_dataset = KITTI(frame_range, use_npy=use_npy, train=True)
+def get_data_loader(batch_size, use_npy, geometry=None, frame_range=10000, target_mean=None, target_std=None):
+    train_dataset = KITTI(frame_range, use_npy=use_npy, train=True, target_mean=target_mean, target_std=target_std)
     if geometry is not None:
         train_dataset.geometry = geometry
     train_dataset.load_velo()
-    train_data_loader = DataLoader(train_dataset, shuffle=True, batch_size=batch_size, num_workers=3)
+    train_data_loader = DataLoader(train_dataset, shuffle=True, batch_size=batch_size, num_workers=3,  target_mean=target_mean, target_std=target_std)
     val_dataset = KITTI(frame_range, use_npy=use_npy, train=False)
     if geometry is not None:
         val_dataset.geometry = geometry
     val_dataset.load_velo()
-    val_data_loader = DataLoader(val_dataset, shuffle=False, batch_size=batch_size * 4, num_workers=8)
+    val_data_loader = DataLoader(val_dataset, shuffle=False, batch_size=batch_size * 4, num_workers=8,  target_mean=target_mean, target_std=target_std)
 
     print("------------------------------------------------------------------")
     return train_data_loader, val_data_loader
@@ -360,6 +363,6 @@ def test():
 
 
 if __name__=="__main__":
-    test0(id=25)
-    #preprocess_to_npy(True)
-    #preprocess_to_npy(False)
+    # test0(id=25)
+    preprocess_to_npy(True)
+    preprocess_to_npy(False)

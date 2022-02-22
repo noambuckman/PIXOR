@@ -7,14 +7,14 @@ import random
 from torch.multiprocessing import Pool
 
 from loss import CustomLoss
-from datagen import get_data_loader
+from datagen import get_data_loader, find_reg_target_var_and_mean
 from model import PIXOR
 from utils import get_model_name, load_config, get_logger, plot_bev, plot_label_map, plot_pr_curve, get_bev
 from postprocess import filter_pred, compute_matches, compute_ap
 
 
-def build_model(config, device, train=True):
-    net = PIXOR(config['geometry'], config['use_bn'])
+def build_model(config, device, train=True, target_mean=None, target_std=None):
+    net = PIXOR(config['geometry'], config['use_bn'], target_mean=target_mean, target_std=target_std)
     loss_fn = CustomLoss(device, config, num_classes=1)
 
     if torch.cuda.device_count() <= 1:
@@ -180,12 +180,13 @@ def eval_dataset(config, net, loss_fn, loader, device, e_range='all'):
 def train(exp_name, device):
     # Load Hyperparameters
     config, learning_rate, batch_size, max_epochs = load_config(exp_name)
-
+    
+    target_mean, target_std = find_reg_target_var_and_mean(config["geometry"])
     # Dataset and DataLoader
     train_data_loader, test_data_loader = get_data_loader(batch_size, config['use_npy'],
-                                        geometry=config['geometry'], frame_range=config['frame_range'])
+                                        geometry=config['geometry'], frame_range=config['frame_range'],  target_mean=target_mean, target_std=target_std)
     # Model
-    net, loss_fn, optimizer, scheduler = build_model(config, device, train=True)
+    net, loss_fn, optimizer, scheduler = build_model(config, device, train=True, target_mean=target_mean, target_std=target_std)
 
     # Tensorboard Logger
     train_logger = get_logger(config, 'train')
