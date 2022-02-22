@@ -228,6 +228,8 @@ def train(exp_name, device):
             # Forward
             predictions = net(input)
             loss, cls, loc = loss_fn(predictions, label_map)
+            print("Class Loss", cls)
+            print("Loc Loss", loc)
             loss.backward()
             optimizer.step()
             cls_loss += cls
