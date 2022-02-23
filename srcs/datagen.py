@@ -442,10 +442,10 @@ def test():
 if __name__=="__main__":
     # test0(id=25)
     config, _, _, _ = load_config("default")
-    find_reg_target_var_and_mean(config["geometry"])
+    # find_reg_target_var_and_mean(config["geometry"])
 
     
-    # print("Processing Train")
-    # preprocess_to_npy(True, geometry=config["geometry"])
-    # print("Processing Val")
-    # preprocess_to_npy(False, geometry=config["geometry"])
+    print("Processing Train")
+    preprocess_to_npy(True, geometry=config["geometry"])
+    print("Processing Val")
+    preprocess_to_npy(False, geometry=config["geometry"])
