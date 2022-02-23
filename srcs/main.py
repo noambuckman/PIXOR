@@ -177,7 +177,7 @@ def eval_dataset(config, net, loss_fn, loader, device, e_range='all'):
     return metrics, precisions, recalls, log_images
 
 
-def train(exp_name, device):
+def train(exp_name, device, clip=True):
     # Load Hyperparameters
     config, learning_rate, batch_size, max_epochs = load_config(exp_name)
     
@@ -232,7 +232,8 @@ def train(exp_name, device):
             print("Class Loss", cls)
             print("Loc Loss", loc)
             loss.backward()
-            torch.nn.utils.clip_grad_norm_(net.parameters(), 100.0)
+            if clip:
+                torch.nn.utils.clip_grad_norm_(net.parameters(), 100.0)
 
             optimizer.step()
             cls_loss += cls
@@ -392,6 +393,7 @@ if __name__ == "__main__":
     parser.add_argument('--eval_range', type=int, help="range of evaluation")
     parser.add_argument('--test_id', type=int, default=0, help="id of the image to test")
     parser.add_argument('--plot_flag', action='store_true', help="plot results")
+    parser.add_argument('--clip', action='store_true', help="go gradient clipping")
 
     args = parser.parse_args()
 
@@ -402,7 +404,7 @@ if __name__ == "__main__":
     print("Using device", device)
 
     if args.mode=='train':
-        train(args.name, device)
+        train(args.name, device, args.clip)
     if args.mode=='val':
         if args.eval_range is None:
             args.eval_range='all'
