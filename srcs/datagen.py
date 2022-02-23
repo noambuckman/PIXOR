@@ -211,9 +211,15 @@ class KITTI(Dataset):
             scan = np.zeros(self.geometry['input_shape'], dtype=np.float32)
             c_data = ctypes.c_void_p(scan.ctypes.data)
             self.LidarLib.createTopViewMaps(c_data, c_name)
-            scan = np.fromfile(filename, dtype=np.float32).reshape(-1, 4)
+            # scan = np.fromfile(filename, dtype=np.float32).reshape(-1, 4)
             
         return scan
+
+    def load_velo_scan2(self, item):
+        filename = self.velo[item]
+        points = np.fromfile(filename, dtype=np.float32).reshape(-1, 4)        
+        
+        return points      
 
     def load_velo(self):
         """Load velodyne [x,y,z,reflectance] scan data from binary files."""
@@ -262,6 +268,7 @@ class KITTI(Dataset):
             x = int((velo[i, 1]-self.geometry['L1']) / dx)
             y = int((velo[i, 0]-self.geometry['W1']) / dy)
             z = int((velo[i, 2]-self.geometry['H1']) / dz)
+
             velo_processed[x, y, z] = 1
             velo_processed[x, y, -1] += velo[i, 3]
             intensity_map_count[x, y] += 1
@@ -295,6 +302,7 @@ def test0(id=25):
     dx, dy, dz = get_discretization_from_geom(config["geometry"])
     
     k.load_velo()
+    print(k.velo[id])
     tstart = time.time()
     scan = k.load_velo_scan(id)
     processed_v = k.lidar_preprocess(scan)
@@ -303,6 +311,36 @@ def test0(id=25):
     print('time taken: %gs' %(time.time()-tstart))
     plot_bev(processed_v, label_list, geom=config["geometry"])
     plot_label_map(label_map[:, :, 6])
+
+def test1(id=25):
+    config, _,_,_ = load_config("default")
+    
+    k = KITTI(use_npy=True)
+    k.geometry = config["geometry"]
+
+    dx, dy, dz = get_discretization_from_geom(config["geometry"])
+
+    k.load_velo()
+    print(k.velo[id])
+    tstart = time.time()
+
+
+    processed_v = k.load_velo_scan(id)
+    # processed_v = k.lidar_preprocess(scan)
+    label_map, label_list = k.get_label(id)
+    print(label_list)
+    print('time taken: %gs' %(time.time()-tstart))
+    plot_bev(processed_v, label_list, geom=config["geometry"])
+    plot_label_map(label_map[:, :, 6])    
+
+
+def view_multiple(n=100):
+    for i in range(100):
+        id = np.random.randint(0, 600)
+        test1(id)
+        input("Press Enter to continue...")        
+
+
 
 
 def find_reg_target_var_and_mean(geom=None):
@@ -333,7 +371,7 @@ def preprocess_to_npy(train=True, geometry=None):
     
     k.load_velo()
     for item, name in enumerate(k.velo):
-        scan = k.load_velo_scan(item)
+        scan = k.load_velo_scan2(item)
         scan = k.lidar_preprocess(scan)
         path = name[:-4] + '.npy'
         np.save(path, scan)
@@ -364,5 +402,6 @@ def test():
 
 if __name__=="__main__":
     # test0(id=25)
-    preprocess_to_npy(True)
-    preprocess_to_npy(False)
+    config, _, _, _ = load_config("default")
+    # preprocess_to_npy(True, geometry=config["geometry"])
+    preprocess_to_npy(False, geometry=config["geometry"])
