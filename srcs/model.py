@@ -89,7 +89,8 @@ class BackBone(nn.Module):
         self.use_bn = use_bn
 
         # Block 1
-        self.conv1 = conv3x3(36, 32)
+        input_dim = geom["input_shape"][2] #does this work?
+        self.conv1 = conv3x3(input_dim, 32)
         self.conv2 = conv3x3(32, 32)
         self.bn1 = nn.BatchNorm2d(32)
         self.bn2 = nn.BatchNorm2d(32)
