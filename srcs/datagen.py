@@ -33,12 +33,12 @@ class KITTI(Dataset):
     # target_std_dev = np.array([0.866, 0.5, 0.954, 0.668, 0.09, 0.111])
 
 
-    def __init__(self, frame_range = 10000, use_npy=False, train=True, target_mean = None, target_std_dev=None):
+    def __init__(self, frame_range = 10000, use_npy=False, train=True, target_mean = None, target_std_dev=None, ignore_list=None):
         self.frame_range = frame_range
         self.velo = []
         self.use_npy = use_npy
         # self.LidarLib = ctypes.cdll.LoadLibrary('preprocess/LidarPreprocess.so')
-        self.image_sets = self.load_imageset(train) # names
+        self.image_sets = self.load_imageset(train, ignore_list) # names
 
         self.target_mean = target_mean
         self.target_std_dev = target_std_dev
@@ -69,7 +69,10 @@ class KITTI(Dataset):
         reg_map[index] = (reg_map[index] - self.target_mean)/self.target_std_dev
 
 
-    def load_imageset(self, train):
+    def load_imageset(self, train, ignore_list=None):
+        if ignore_list is None:
+            ignore_list = []
+        print("ignore list", ignore_list)
         path = KITTI_PATH
         if train:
             path = os.path.join(path, "train.txt")
@@ -80,7 +83,7 @@ class KITTI(Dataset):
             lines = f.readlines() # get rid of \n symbol
             names = []
             for line in lines[:-1]:
-                if int(line[:-1]) < self.frame_range:
+                if int(line[:-1]) < self.frame_range and line[:-1] not in ignore_list:
                     names.append(line[:-1])
 
             # Last line does not have a \n symbol
@@ -277,13 +280,13 @@ class KITTI(Dataset):
         return velo_processed
 
 
-def get_data_loader(batch_size, use_npy, geometry=None, frame_range=10000, target_mean=None, target_std_dev=None):
-    train_dataset = KITTI(frame_range, use_npy=use_npy, train=True, target_mean=target_mean, target_std_dev=target_std_dev)
+def get_data_loader(batch_size, use_npy, geometry=None, frame_range=10000, target_mean=None, target_std_dev=None, ignore_list=None):
+    train_dataset = KITTI(frame_range, use_npy=use_npy, train=True, target_mean=target_mean, target_std_dev=target_std_dev, ignore_list=ignore_list)
     if geometry is not None:
         train_dataset.geometry = geometry
     train_dataset.load_velo()
     train_data_loader = DataLoader(train_dataset, shuffle=True, batch_size=batch_size, num_workers=3)
-    val_dataset = KITTI(frame_range, use_npy=use_npy, train=False,  target_mean=target_mean, target_std_dev=target_std_dev)
+    val_dataset = KITTI(frame_range, use_npy=use_npy, train=False,  target_mean=target_mean, target_std_dev=target_std_dev, ignore_list=ignore_list)
     if geometry is not None:
         val_dataset.geometry = geometry
     val_dataset.load_velo()
@@ -341,10 +344,26 @@ def view_multiple(n=100):
         input("Press Enter to continue...")        
 
 
+def find_reg_target_var_and_mean_kitti(kitti):
+    reg_targets = [[] for _ in range(6)]
+    for i in range(len(kitti)):
+        label_map, _ = kitti.get_label(i)
+        car_locs = np.where(label_map[:, :, 0] == 1)
+        for j in range(1, 7):
+            map = label_map[:, :, j]
+            reg_targets[j-1].extend(list(map[car_locs]))
 
+    reg_targets = np.array(reg_targets)
+    means = reg_targets.mean(axis=1)
+    stds = reg_targets.std(axis=1)
+    stds = stds + 0.01*np.ones(shape=stds.shape)
+    np.set_printoptions(precision=3, suppress=True)
+    print("Means", means)
+    print("Stds", stds)
+    return means, stds    
 
 def find_reg_target_var_and_mean(geom=None):
-    k = KITTI()
+    k = KITTI(use_npy=True, train=True)
     if geom is not None:
         k.geometry = geom
     reg_targets = [[] for _ in range(6)]
@@ -354,15 +373,35 @@ def find_reg_target_var_and_mean(geom=None):
         for j in range(1, 7):
             map = label_map[:, :, j]
             reg_targets[j-1].extend(list(map[car_locs]))
+        # print(len(car_locs[0]))
+
+
 
     reg_targets = np.array(reg_targets)
     means = reg_targets.mean(axis=1)
     stds = reg_targets.std(axis=1)
-
+    stds = stds + 0.01*np.ones(shape=stds.shape)
     np.set_printoptions(precision=3, suppress=True)
     print("Means", means)
     print("Stds", stds)
     return means, stds
+
+def find_samples_without_labels(geom=None):
+    sample_ids = []
+
+    for train in [True, False]:
+        k = KITTI(use_npy=True, train=train)
+        if geom is not None:
+            k.geometry = geom
+            
+        for i in range(len(k)):
+            label_map, _ = k.get_label(i)
+            car_locs = np.where(label_map[:, :, 0] == 1)
+            if len(car_locs[0])==0:
+                sample_ids.append(k.image_sets[i])
+    print(sample_ids)
+    return sample_ids
+
 
 def preprocess_to_npy(train=True, geometry=None):
     k = KITTI(train=train)
@@ -403,7 +442,10 @@ def test():
 if __name__=="__main__":
     # test0(id=25)
     config, _, _, _ = load_config("default")
-    print("Processing Train")
-    preprocess_to_npy(True, geometry=config["geometry"])
-    print("Processing Val")
-    preprocess_to_npy(False, geometry=config["geometry"])
+    find_reg_target_var_and_mean(config["geometry"])
+
+    
+    # print("Processing Train")
+    # preprocess_to_npy(True, geometry=config["geometry"])
+    # print("Processing Val")
+    # preprocess_to_npy(False, geometry=config["geometry"])

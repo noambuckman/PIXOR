@@ -7,7 +7,7 @@ import random
 from torch.multiprocessing import Pool
 
 from loss import CustomLoss
-from datagen import get_data_loader, find_reg_target_var_and_mean
+from datagen import get_data_loader, find_reg_target_var_and_mean, find_samples_without_labels
 from model import PIXOR
 from utils import get_model_name, load_config, get_logger, plot_bev, plot_label_map, plot_pr_curve, get_bev
 from postprocess import filter_pred, compute_matches, compute_ap
@@ -182,9 +182,10 @@ def train(exp_name, device, clip=True):
     config, learning_rate, batch_size, max_epochs = load_config(exp_name)
     
     target_mean, target_std_dev = find_reg_target_var_and_mean(config["geometry"])
+    ignore_list = find_samples_without_labels(config["geometry"])
     # Dataset and DataLoader
     train_data_loader, test_data_loader = get_data_loader(batch_size, config['use_npy'],
-                                        geometry=config['geometry'], frame_range=config['frame_range'],  target_mean=target_mean, target_std_dev=target_std_dev)
+                                        geometry=config['geometry'], frame_range=config['frame_range'],  target_mean=target_mean, target_std_dev=target_std_dev, ignore_list=ignore_list)
     # Model
     net, loss_fn, optimizer, scheduler = build_model(config, device, train=True, target_mean=target_mean, target_std_dev=target_std_dev)
 
