@@ -398,6 +398,7 @@ def find_samples_without_labels(geom=None):
             label_map, _ = k.get_label(i)
             car_locs = np.where(label_map[:, :, 0] == 1)
             if len(car_locs[0])==0:
+                print(k.image_sets[i], "Has No Labels")
                 sample_ids.append(k.image_sets[i])
     print(sample_ids)
     return sample_ids
