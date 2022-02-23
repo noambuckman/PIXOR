@@ -403,5 +403,7 @@ def test():
 if __name__=="__main__":
     # test0(id=25)
     config, _, _, _ = load_config("default")
-    # preprocess_to_npy(True, geometry=config["geometry"])
+    print("Processing Train")
+    preprocess_to_npy(True, geometry=config["geometry"])
+    print("Processing Val")
     preprocess_to_npy(False, geometry=config["geometry"])
