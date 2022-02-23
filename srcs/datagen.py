@@ -37,7 +37,7 @@ class KITTI(Dataset):
         self.frame_range = frame_range
         self.velo = []
         self.use_npy = use_npy
-        self.LidarLib = ctypes.cdll.LoadLibrary('preprocess/LidarPreprocess.so')
+        # self.LidarLib = ctypes.cdll.LoadLibrary('preprocess/LidarPreprocess.so')
         self.image_sets = self.load_imageset(train) # names
 
         self.target_mean = target_mean
