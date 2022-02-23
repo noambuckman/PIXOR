@@ -48,8 +48,12 @@ def compute_iou(box, boxes):
     efficiency. Calculate once in the caller to avoid duplicate work.
     """
     # Calculate intersection areas
-    iou = [box.intersection(b).area / box.union(b).area for b in boxes]
-
+    try:
+        iou = [box.intersection(b).area / box.union(b).area for b in boxes]
+    except ZeroDivisionError as e:
+        print(b.area for b in boxes)
+        print(box.area)
+        raise e
     return np.array(iou, dtype=np.float32)
 
 
