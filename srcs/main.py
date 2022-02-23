@@ -183,6 +183,7 @@ def train(exp_name, device, clip=True):
     
     target_mean, target_std_dev = find_reg_target_var_and_mean(config["geometry"])
     ignore_list = find_samples_without_labels(config["geometry"])
+    print("ignore list", ignore_list)
     # Dataset and DataLoader
     train_data_loader, test_data_loader = get_data_loader(batch_size, config['use_npy'],
                                         geometry=config['geometry'], frame_range=config['frame_range'],  target_mean=target_mean, target_std_dev=target_std_dev, ignore_list=ignore_list)
