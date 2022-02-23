@@ -262,7 +262,7 @@ class Decoder(nn.Module):
         cos_t = torch.cos(theta)
         sin_t = torch.sin(theta)
 
-        x_grid_size, y_grid_size, _ = get_discretization_from_geom(self.geometry, input_layer=False)
+        x_grid_size, y_grid_size, _ = get_discretization_from_geom(self.geometry_dict, input_layer=False)
         
         x = torch.arange(self.geometry[2], self.geometry[3], x_grid_size, dtype=torch.float32, device=device)
         y = torch.arange(self.geometry[0], self.geometry[1], y_grid_size, dtype=torch.float32, device=device)
