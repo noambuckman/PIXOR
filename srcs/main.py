@@ -180,10 +180,10 @@ def eval_dataset(config, net, loss_fn, loader, device, e_range='all'):
 def train(exp_name, device, clip=True):
     # Load Hyperparameters
     config, learning_rate, batch_size, max_epochs = load_config(exp_name)
-    
-    target_mean, target_std_dev = find_reg_target_var_and_mean(config["geometry"])
     ignore_list = find_samples_without_labels(config["geometry"])
     print("ignore list", ignore_list)
+
+    target_mean, target_std_dev = find_reg_target_var_and_mean(config["geometry"])
     # Dataset and DataLoader
     train_data_loader, test_data_loader = get_data_loader(batch_size, config['use_npy'],
                                         geometry=config['geometry'], frame_range=config['frame_range'],  target_mean=target_mean, target_std_dev=target_std_dev, ignore_list=ignore_list)
