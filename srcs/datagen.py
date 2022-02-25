@@ -39,6 +39,7 @@ class KITTI(Dataset):
         self.use_npy = use_npy
         # self.LidarLib = ctypes.cdll.LoadLibrary('preprocess/LidarPreprocess.so')
         self.image_sets = self.load_imageset(train, ignore_list) # names
+        
 
         self.target_mean = target_mean
         self.target_std_dev = target_std_dev
@@ -95,21 +96,39 @@ class KITTI(Dataset):
             
             return names
     
-    def interpret_kitti_label(self, bbox):
-        w, h, l, y, z, x, yaw = bbox[8:15]
-        y = -y
-        yaw = - (yaw + np.pi / 2)
+    # def interpret_kitti_label(self, bbox): #DEPRECATED TO INCLUDE CALIB
+    #     w, h, l, y, z, x, yaw = bbox[8:15]
+    #     y = -y
+    #     yaw = - (yaw + np.pi / 2)
         
-        return x, y, w, l, yaw
+    #     return x, y, w, l, yaw
     
     def interpret_custom_label(self, bbox):
         w, l, x, y, yaw = bbox
         return x, y, w, l, yaw
 
-    def get_corners(self, bbox):
+    def convert_cam_label_to_vel_label(self, bbox,  R_velo_to_cam, t_velo_to_cam):
+        ''' The bbox is in the camera frame so we need to conver to velodyne frame'''
+        w, h, l, x_cam, y_cam, z_cam, yaw = bbox[8:15]
 
-        w, h, l, y, z, x, yaw = bbox[8:15]
-        y = -y
+        center_camframe = np.array([x_cam, y_cam, z_cam])
+        R_inv = R_velo_to_cam.T
+        rotated_center = np.matmul(R_inv, center_camframe - t_velo_to_cam)
+        x = rotated_center[0]
+        y = rotated_center[1]
+        z = rotated_center[2]
+
+        return w, h, l, x, y, z, yaw
+
+
+
+    def get_corners(self, bbox, R_velo_to_cam, t_velo_to_cam):
+
+        # w, h, l, y, z, x, yaw = bbox[8:15]
+        # y = -y
+
+        w, h, l, x, y, z, yaw = self.convert_cam_label_to_vel_label(bbox, R_velo_to_cam, t_velo_to_cam)
+
         # manually take a negative s. t. it's a right-hand system, with
         # x facing in the front windshield of the car
         # z facing up
@@ -141,17 +160,16 @@ class KITTI(Dataset):
 
 
     def update_label_map(self, map, bev_corners, reg_target):
-        dx, dy, dz = get_discretization_from_geom(self.geometry, input_layer=False)
-        
-        label_corners = transform_metric2label(bev_corners, dx, dy, self.geometry['label_shape'][0])
-        
+        label_corners = transform_metric2label(bev_corners, self.geometry) 
+
         points = get_points_in_a_rotated_box(label_corners, self.geometry['label_shape'])
+
         for p in points:
             label_x = p[0]
             label_y = p[1]
 
-            metric_x, metric_y = transform_label2metric(np.array(p), dx, dy, self.geometry['label_shape'][0])
-
+            metric_x, metric_y = transform_label2metric(np.array(p, dtype=np.float32), self.geometry)
+            
             actual_reg_target = np.copy(reg_target)
             actual_reg_target[2] = reg_target[2] - metric_x
             actual_reg_target[3] = reg_target[3] - metric_y
@@ -160,7 +178,6 @@ class KITTI(Dataset):
 
             map[label_y, label_x, 0] = 1.0
             map[label_y, label_x, 1:7] = actual_reg_target
-
 
     def get_label(self, index):
         '''
@@ -178,10 +195,20 @@ class KITTI(Dataset):
         index = self.image_sets[index]
         f_name = (6-len(index)) * '0' + index + '.txt'
         label_path = os.path.join(KITTI_PATH, 'training', 'label_2', f_name)
-
+        calib_path = os.path.join(KITTI_PATH, 'training', 'calib', f_name)
         object_list = {'Car': 1, 'Truck':0, 'DontCare':0, 'Van':0, 'Tram':0}
         label_map = np.zeros(self.geometry['label_shape'], dtype=np.float32)
         label_list = []
+
+        with open(calib_path, 'r') as f:
+            lines = f.read().splitlines()
+            line = lines[5] 
+            entry = line.split(' ')
+            entry_f = [float(e) for e in entry[1:]]
+            tr_velo_to_cam = np.array(entry_f).reshape(3,4)
+            R_velo_to_cam = tr_velo_to_cam[0:3,0:3] 
+            t_velo_to_cam = tr_velo_to_cam[0:3,3]
+
         with open(label_path, 'r') as f:
             lines = f.readlines() # get rid of \n symbol
             for line in lines:
@@ -192,7 +219,7 @@ class KITTI(Dataset):
                     bbox.append(object_list[name])
                     bbox.extend([float(e) for e in entry[1:]])
                     if name == 'Car':
-                        corners, reg_target = self.get_corners(bbox)
+                        corners, reg_target = self.get_corners(bbox, R_velo_to_cam, t_velo_to_cam)
                         self.update_label_map(label_map, corners, reg_target)
                         label_list.append(corners)
         return label_map, label_list
@@ -210,11 +237,12 @@ class KITTI(Dataset):
         if self.use_npy:
             scan = np.load(filename[:-4]+'.npy')
         else:
-            c_name = bytes(filename, 'utf-8')
-            scan = np.zeros(self.geometry['input_shape'], dtype=np.float32)
-            c_data = ctypes.c_void_p(scan.ctypes.data)
-            self.LidarLib.createTopViewMaps(c_data, c_name)
-            # scan = np.fromfile(filename, dtype=np.float32).reshape(-1, 4)
+            # c_name = bytes(filename, 'utf-8')
+            # scan = np.zeros(self.geometry['input_shape'], dtype=np.float32)
+            # c_data = ctypes.c_void_p(scan.ctypes.data)
+            # self.LidarLib.createTopViewMaps(c_data, c_name)
+            points = np.fromfile(filename, dtype=np.float32).reshape(-1, 4)      
+            scan = self.lidar_preprocess(points)  
             
         return scan
 
@@ -266,13 +294,12 @@ class KITTI(Dataset):
 
 
         dx, dy, dz = get_discretization_from_geom(self.geometry, input_layer=True)
-
         for i in range(velo.shape[0]):
-            x = int((velo[i, 1]-self.geometry['L1']) / dx)
-            y = int((velo[i, 0]-self.geometry['W1']) / dy)
+            x = int((velo[i, 1]-self.geometry['L1']) / dy)
+            y = int((velo[i, 0]-self.geometry['W1']) / dx)
             z = int((velo[i, 2]-self.geometry['H1']) / dz)
-
             velo_processed[x, y, z] = 1
+
             velo_processed[x, y, -1] += velo[i, 3]
             intensity_map_count[x, y] += 1
         velo_processed[:, :, -1] = np.divide(velo_processed[:, :, -1],  intensity_map_count,
@@ -307,8 +334,7 @@ def test0(id=25):
     k.load_velo()
     print(k.velo[id])
     tstart = time.time()
-    scan = k.load_velo_scan(id)
-    processed_v = k.lidar_preprocess(scan)
+    processed_v = k.load_velo_scan(id)
     label_map, label_list = k.get_label(id)
     print(label_list)
     print('time taken: %gs' %(time.time()-tstart))
@@ -317,7 +343,7 @@ def test0(id=25):
 
 def test1(id=25):
     config, _,_,_ = load_config("default")
-    
+
     k = KITTI(use_npy=True)
     k.geometry = config["geometry"]
 
@@ -397,10 +423,10 @@ def find_samples_without_labels(geom=None):
         for i in range(len(k)):
             label_map, _ = k.get_label(i)
             car_locs = np.where(label_map[:, :, 0] == 1)
-            print(len(car_locs[0]))
             if len(car_locs[0])==0:
                 print(k.image_sets[i], "Has No Labels")
                 sample_ids.append(k.image_sets[i])
+        
     print(sample_ids)
     return sample_ids
 
@@ -412,8 +438,7 @@ def preprocess_to_npy(train=True, geometry=None):
     
     k.load_velo()
     for item, name in enumerate(k.velo):
-        scan = k.load_velo_scan2(item)
-        scan = k.lidar_preprocess(scan)
+        scan = k.load_velo_scan(item)
         path = name[:-4] + '.npy'
         np.save(path, scan)
         print('Saved ', path)
@@ -442,8 +467,10 @@ def test():
 
 
 if __name__=="__main__":
-    # test0(id=25)
     config, _, _, _ = load_config("default")
+
+    # test0(id=25)
+    # find_samples_without_labels(config["geometry"])
     # find_reg_target_var_and_mean(config["geometry"])
 
     
