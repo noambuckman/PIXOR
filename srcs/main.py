@@ -268,7 +268,7 @@ def train(exp_name, device, clip=True):
         # Run Validation
         validation = False
 
-        if (epoch +1) % 3 == 0:
+        if (epoch +1) % config["save_every"] == 0:
             tic = time.time()
             val_metrics, _, _, log_images = eval_batch(config, net, loss_fn, test_data_loader, device)
             for tag, value in val_metrics.items():
