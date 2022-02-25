@@ -158,9 +158,9 @@ def compute_ap_range(gt_box, gt_class_id,
     return AP
 
 def compute_ap(pred_match, num_gt, num_pred):
+    if num_gt == 0 or num_pred == 0:
+        return 0.0, 0.0, 0.0, 0.0, 0.0
 
-    assert num_gt != 0
-    assert num_pred != 0
     tp = (pred_match > -1).sum()
     # Compute precision and recall at each prediction box step
     precisions = np.cumsum(pred_match > -1) / (np.arange(num_pred) + 1)
