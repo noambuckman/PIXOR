@@ -62,7 +62,7 @@ def maskFOV_on_BEV(shape, fov=88.0):
     return in_fov
 from datetime import datetime
 def get_logger(config, mode='train'):
-    folder = os.path.join('logs', config['name'], mode, datetime.now().strftime("%md%d%&%H%M%S"))
+    folder = os.path.join('logs', config['name'], mode, datetime.now().strftime("%y%m%d_%H%M%S"))
     if not os.path.exists(folder):
         os.makedirs(folder)
     return logger.Logger(folder)
