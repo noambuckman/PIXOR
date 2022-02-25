@@ -9,26 +9,35 @@ import json
 import os
 import logger
 
-def transform_label2metric(label, x_grid_size, y_grid_size, base_height=200):
+def transform_label2metric(label, geometry):
     '''
     :param label: numpy array of shape [..., 2] of coordinates in label map space
     :return: numpy array of shape [..., 2] of the same coordinates in metric space
     '''
-    metric = np.copy(label)
 
+    x_grid_size, y_grid_size, _ = get_discretization_from_geom(geometry, False)
+    base_height = geometry["label_shape"][0]
+    metric = np.copy(label)
     metric[..., 1] = metric[..., 1] - (base_height/2.0)
-    metric[..., 1] = metric[..., 1] * y_grid_size
-    metric[..., 0] = metric[..., 0] * x_grid_size
+    metric[..., 1] = metric[..., 1] * y_grid_size 
+    
+    
+    metric[..., 0] = metric[..., 0] * x_grid_size + geometry["W1"] 
     return metric
 
-def transform_metric2label(metric, x_grid_size, y_grid_size, base_height=100):
+def transform_metric2label(metric, geometry):
     '''
     :param label: numpy array of shape [..., 2] of coordinates in metric space
     :return: numpy array of shape [..., 2] of the same coordinates in label_map space
     '''
     label = np.copy(metric)
-    label[..., 0] = label[..., 0] / x_grid_size
-    label[..., 1] =  label[..., 1] / y_grid_size
+    x_grid_size, y_grid_size, _ = get_discretization_from_geom(geometry, False)
+    base_height = geometry["label_shape"][0]
+
+
+
+    label[..., 0] = (label[..., 0] - geometry["W1"]) / x_grid_size
+    label[..., 1] =  (label[..., 1] )/ y_grid_size
     label[..., 1] = label[..., 1] + (base_height/2.0)
 
     return label
@@ -74,7 +83,7 @@ def get_discretization_from_geom(geom, input_layer=True):
 
     return dx, dy, dz
 
-def get_bev(velo_array, label_list = None, scores = None, dx = 0.1, dy=0.1):
+def get_bev(velo_array, label_list = None, scores = None, geometry=None):
     map_height = velo_array.shape[0]
     intensity = np.zeros((velo_array.shape[0], velo_array.shape[1], 3), dtype=np.uint8)   
      # val = 1 - velo_array[::-1, :, -1]
@@ -82,12 +91,13 @@ def get_bev(velo_array, label_list = None, scores = None, dx = 0.1, dy=0.1):
     intensity[:, :, 0] = val
     intensity[:, :, 1] = val
     intensity[:, :, 2] = val
+    np.transpose(intensity, (1, 0, 2))
     # FLip in the x direction
-    
+    dx, dy, dz = get_discretization_from_geom(geometry, input_layer = True)    
     if label_list is not None:
         for corners in label_list:
             plot_corners = corners
-            plot_corners[:, 0] = corners[:, 0] / dx
+            plot_corners[:, 0] = (corners[:, 0] - geometry["W1"])/ dx
             plot_corners[:, 1] = corners[:, 1] / dy
 
             plot_corners[:, 1] += int(map_height // 2)
@@ -111,11 +121,8 @@ def plot_bev(velo_array, label_list = None, scores = None, window_name='GT', sav
     :param window_name: name of the open_cv2 window
     :return: None
     '''
-    if geom is not None:
-        dx, dy, dz = get_discretization_from_geom(geom, input_layer=True)
-    else:
-        dx = dy = dz = 0.1
-    intensity = get_bev(velo_array, label_list, scores, dx, dy)
+
+    intensity = get_bev(velo_array, label_list, scores, geom)
 
     if save_path != None:
         print(save_path)
