@@ -259,11 +259,11 @@ def train(exp_name, device, clip=True):
 
         # Record Training Loss
         train_loss = train_loss / len(train_data_loader)
-        cls_loss = cls_loss / len(train_data_loader)
-        loc_loss = loc_loss / len(train_data_loader)
+        # cls_loss = cls_loss / len(train_data_loader)
+        # loc_loss = loc_loss / len(train_data_loader)
         train_logger.scalar_summary('loss', train_loss, epoch + 1)
-        print("Epoch {}|Time {:.3f}|Training Loss: {:.5f} | Cls: {:.5f} | Loc Loss: {:.5f}".format(
-            epoch + 1, time.time() - start_time, train_loss, cls_loss, loc_loss))
+        print("Epoch {}|Time {:.3f}|Training Loss: {:.5f} ".format(
+            epoch + 1, time.time() - start_time, train_loss))
 
         # Run Validation
         validation = False
