@@ -2,7 +2,7 @@ import torch
 import torch.nn
 import cv2
 import numpy as np
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 # plt.switch_backend('agg')
 import math
 import json
@@ -60,9 +60,9 @@ def maskFOV_on_BEV(shape, fov=88.0):
     in_fov = torch.from_numpy(in_fov.astype(np.float32))
 
     return in_fov
-
+import datetime
 def get_logger(config, mode='train'):
-    folder = os.path.join('logs', config['name'], mode)
+    folder = os.path.join('logs', config['name'], mode, datetime.now().strftime("%md%d%&%H%M%S"))
     if not os.path.exists(folder):
         os.makedirs(folder)
     return logger.Logger(folder)
