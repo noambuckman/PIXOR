@@ -216,6 +216,8 @@ class Header(nn.Module):
         cls = torch.sigmoid(self.clshead(x))
         reg = self.reghead(x)
 
+        
+
         return cls, reg
 
 class Decoder(nn.Module):
@@ -275,6 +277,8 @@ class Decoder(nn.Module):
         centre_x = xx + dx
         l = log_l.exp()
         w = log_w.exp()
+        l = l.clamp(0.001, 3.0)
+        w = w.clamp(0.001, 3.0)
 
         rear_left_x = centre_x - l/2 * cos_t - w/2 * sin_t
         rear_left_y = centre_y - l/2 * sin_t + w/2 * cos_t
