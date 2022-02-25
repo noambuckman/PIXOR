@@ -60,7 +60,7 @@ def maskFOV_on_BEV(shape, fov=88.0):
     in_fov = torch.from_numpy(in_fov.astype(np.float32))
 
     return in_fov
-import datetime
+from datetime import datetime
 def get_logger(config, mode='train'):
     folder = os.path.join('logs', config['name'], mode, datetime.now().strftime("%md%d%&%H%M%S"))
     if not os.path.exists(folder):
