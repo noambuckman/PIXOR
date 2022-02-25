@@ -118,8 +118,7 @@ def filter_pred(config, pred):
     if num_boxes == 0:
         #print("No bounding box found")
         return [], []
-    wl = pred[4:6,: ]
-    print(wl)
+
     corners = torch.zeros((num_boxes, 8))
     for i in range(7, 15):
         corners[:, i - 7] = torch.masked_select(pred[i, ...], activation)

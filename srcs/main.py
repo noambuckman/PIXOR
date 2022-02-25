@@ -231,8 +231,6 @@ def train(exp_name, device, clip=True):
             # Forward
             predictions = net(input)
             loss, cls, loc = loss_fn(predictions, label_map)
-            print("Class Loss", cls)
-            print("Loc Loss", loc)
             loss.backward()
             if clip:
                 torch.nn.utils.clip_grad_norm_(net.parameters(), 100.0)
@@ -261,12 +259,17 @@ def train(exp_name, device, clip=True):
 
         # Record Training Loss
         train_loss = train_loss / len(train_data_loader)
+        cls_loss = cls_loss / len(train_data_loader)
+        loc_loss = loc_loss / len(train_data_loader)
         train_logger.scalar_summary('loss', train_loss, epoch + 1)
-        print("Epoch {}|Time {:.3f}|Training Loss: {:.5f}".format(
-            epoch + 1, time.time() - start_time, train_loss))
+        print("Epoch {}|Time {:.3f}|Training Loss: {:.5f} | Cls: {:.5f} | Loc Loss: {:.5f}".format(
+            epoch + 1, time.time() - start_time, train_loss, cls_loss, loc_loss))
 
         # Run Validation
-        if (epoch +1) % 2 == 0:
+        validation = False
+        if epoch == epoch-3:
+            validation = True
+        if (epoch +1) % 2 == 0 and validation:
             tic = time.time()
             val_metrics, _, _, log_images = eval_batch(config, net, loss_fn, test_data_loader, device)
             for tag, value in val_metrics.items():
