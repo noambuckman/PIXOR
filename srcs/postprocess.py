@@ -85,7 +85,7 @@ def non_max_suppression(boxes, scores, threshold):
 
     top = 64
     # Get indicies of boxes sorted by scores (highest first)
-    ixs = scores.argsort()[::-1][:64]
+    ixs = scores.argsort()[::-1][:top]
 
     pick = []
     while len(ixs) > 0:
@@ -118,7 +118,8 @@ def filter_pred(config, pred):
     if num_boxes == 0:
         #print("No bounding box found")
         return [], []
-
+    lw = corners[:, 4:6]
+    print(lw)
     corners = torch.zeros((num_boxes, 8))
     for i in range(7, 15):
         corners[:, i - 7] = torch.masked_select(pred[i, ...], activation)
