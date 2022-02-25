@@ -1,7 +1,7 @@
 {
   "name": "default",
-  "resume_training": false,
-  "resume_from": 34,
+  "resume_training": true,
+  "resume_from": 25,
 
   "batch_size": 6,
   "learning_rate": 0.01,
