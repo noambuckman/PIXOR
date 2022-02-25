@@ -57,9 +57,9 @@ class CustomLoss(nn.Module):
         elif preds.size(1) == 15:
             cls_preds, loc_preds, _ = preds.split([1, 6, 8], dim=1)
         ################################################################
-        # cls_loss = self.focal_loss(cls_preds, cls_targets)
+        cls_loss = self.focal_loss(cls_preds, cls_targets)
         ################################################################
-        cls_loss = self.cross_entropy(cls_preds, cls_targets) * self.alpha
+        # cls_loss = self.cross_entropy(cls_preds, cls_targets) * self.alpha
         cls = cls_loss.item()
         ################################################################
         # reg_loss = SmoothL1Loss(loc_preds, loc_targets)

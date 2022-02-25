@@ -320,7 +320,7 @@ class PIXOR(nn.Module):
         prior = 0.01
         self.header.clshead.weight.data.fill_(-math.log((1.0-prior)/prior))
         self.header.clshead.bias.data.fill_(0)
-        self.header.reghead.weight.data.fill_(0)
+        self.header.reghead.weight.data.normal_(0, math.sqrt(2.))
         self.header.reghead.bias.data.fill_(0)
 
     def set_decode(self, decode):
