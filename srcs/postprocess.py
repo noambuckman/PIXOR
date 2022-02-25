@@ -48,12 +48,8 @@ def compute_iou(box, boxes):
     efficiency. Calculate once in the caller to avoid duplicate work.
     """
     # Calculate intersection areas
-    try:
-        iou = [box.intersection(b).area / box.union(b).area for b in boxes]
-    except ZeroDivisionError as e:
-        print([b.area for b in boxes])
-        print(box.area)
-        raise e
+    iou = [box.intersection(b).area / box.union(b).area if box.union(b).area > 0 else 0.0 for b in boxes]
+
     return np.array(iou, dtype=np.float32)
 
 
@@ -118,12 +114,11 @@ def filter_pred(config, pred):
     cls_pred = pred[0, ...]
     activation = cls_pred > config['cls_threshold']
     num_boxes = int(activation.sum())
-
+    print("Num Boxes", num_boxes)
     if num_boxes == 0:
         #print("No bounding box found")
         return [], []
-    print("pred shape", pred.shape)
-    print("pred", pred)
+
     corners = torch.zeros((num_boxes, 8))
     for i in range(7, 15):
         corners[:, i - 7] = torch.masked_select(pred[i, ...], activation)
