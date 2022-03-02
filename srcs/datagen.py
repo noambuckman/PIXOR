@@ -6,7 +6,7 @@ import numpy as np
 import time
 import torch
 import ctypes
-from utils import load_config, get_discretization_from_geom, plot_bev, get_points_in_a_rotated_box, plot_label_map, transform_metric2label, transform_label2metric
+from utils import load_config, get_discretization_from_geom, plot_bev, get_points_in_a_rotated_box, get_points_in_a_rotated_box_metric, plot_label_map, transform_metric2label, transform_label2metric
 from torch.utils.data import Dataset, DataLoader
 
 #KITTI_PATH = '/home/autoronto/Kitti/object'
@@ -77,18 +77,19 @@ class KITTI(Dataset):
             z_resolution: z resolution of laser scanner
         '''
         points = []
-        n_pts = (z_max - z_min)/float(z_resolution) + 1
+        n_pts = int((z_max - z_min)/float(z_resolution)) + 1
+
 
         for bev_corners in label_list:
-            bev_pts = get_points_in_a_rotated_box(bev_corners, self.geometry['input_shape'])
+            bev_pts = get_points_in_a_rotated_box_metric(bev_corners, dx=0.05, dy=0.05)
+            
             for pt in bev_pts:
                 for z in np.linspace(z_min, z_max, n_pts):
                     point_3d = (pt[0], pt[1], z, 1.0)
                     points.append(point_3d) 
+                
      
         points = np.array(points, dtype=float)  
-        points = points.transpose() 
-        print("Before preprocess shape", points.shape)
         scan = self.lidar_preprocess(points)  # np.zeros(self.geometry['input_shape']
 
         return scan
@@ -199,10 +200,9 @@ class KITTI(Dataset):
         label_corners = transform_metric2label(bev_corners, self.geometry) 
 
         points = get_points_in_a_rotated_box(label_corners, self.geometry['label_shape'])
-
         for p in points:
-            label_x = p[0]
-            label_y = p[1]
+            label_x = int(p[0])
+            label_y = int(p[1])
 
             metric_x, metric_y = transform_label2metric(np.array(p, dtype=np.float32), self.geometry)
             

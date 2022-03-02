@@ -8,7 +8,7 @@ import math
 import json
 import os
 import logger
-
+from shapely.geometry import Point, Polygon
 def transform_label2metric(label, geometry):
     '''
     :param label: numpy array of shape [..., 2] of coordinates in label map space
@@ -151,7 +151,27 @@ def plot_pr_curve(precisions, recalls, legend, name='PRCurve'):
     fig.savefig(path)
     print("PR Curve saved at", path)
 
-def get_points_in_a_rotated_box(corners, label_shape=[200, 175]):
+
+def get_points_in_a_rotated_box_metric(corners, dx, dy):
+    ''' Return a list of xy points within the box'''
+    points = []
+    minx = np.min(corners[:, 0])
+    maxx = np.max(corners[:, 0])
+    miny = np.min(corners[:,1])
+    maxy = np.max(corners[:,1])
+    corners_pts = [(corners[i, 0], corners[i, 1]) for i in range(4)]
+    bev_shape = Polygon(corners_pts)
+
+    for x in np.arange(minx, maxx, dx):
+        for y in np.arange(miny, maxy, dy):
+            pt_shape = Point(x,y)
+            if bev_shape.contains(pt_shape) :
+                points.append((x,y))
+
+    
+    return points
+
+def get_points_in_a_rotated_box(corners, label_shape=[200, 175], xmin=0, ymin=0, dx = 1.0, dy=1.):
     def minY(x0, y0, x1, y1, x):
         if x0 == x1:
             # vertical line, y0 is lowest
@@ -239,7 +259,6 @@ def get_points_in_a_rotated_box(corners, label_shape=[200, 175]):
 
         y1 = max(y1, byi)
         y2 = min(y2, tyi)
-
         for y in range(y1, y2):
             pixels.append((x, y))
 
