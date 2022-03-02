@@ -509,6 +509,6 @@ if __name__=="__main__":
 
     
     print("Processing Train")
-    preprocess_to_npy(True, geometry=config["geometry"])
+    preprocess_to_npy(True, geometry=config["geometry"], debug=True)
     print("Processing Val")
-    preprocess_to_npy(False, geometry=config["geometry"])
+    preprocess_to_npy(False, geometry=config["geometry"], debug=True)
