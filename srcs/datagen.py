@@ -43,19 +43,55 @@ class KITTI(Dataset):
 
         self.target_mean = target_mean
         self.target_std_dev = target_std_dev
+        self.debug = False
 
     def __len__(self):
         return len(self.image_sets)
 
     def __getitem__(self, item):
-        scan = self.load_velo_scan(item)
-        scan = torch.from_numpy(scan)
-        label_map, _ = self.get_label(item)
-        self.reg_target_transform(label_map)
-        label_map = torch.from_numpy(label_map)
-        scan = scan.permute(2, 0, 1)
-        label_map = label_map.permute(2, 0, 1)
+        if self.debug:
+
+            label_map, label_list = self.get_label(item)
+            self.reg_target_transform(label_map)
+            label_map = torch.from_numpy(label_map)
+            scan = scan.permute(2, 0, 1)
+            label_map = label_map.permute(2, 0, 1)
+
+            scan = self.scan_from_label()
+            scan = torch.from_numpy(scan)            
+        else:
+            scan = self.load_velo_scan(item)
+            scan = torch.from_numpy(scan)
+            label_map, _ = self.get_label(item)
+            self.reg_target_transform(label_map)
+            label_map = torch.from_numpy(label_map)
+            scan = scan.permute(2, 0, 1)
+            label_map = label_map.permute(2, 0, 1)
+
         return scan, label_map, item
+
+    def scan_from_label(self, label_list, z_min=-0.1, z_max = 0.4, z_resolution=0.1):
+        ''' Generate a post-processed scan with fake velodyne points generated from label map
+            z_min: minimum z-dimension of car
+            z_max: maximum z-dimension of car
+            z_resolution: z resolution of laser scanner
+        '''
+        points = []
+        n_pts = (z_max - z_min)/float(z_resolution) + 1
+
+        for bev_corners in label_list:
+            bev_pts = get_points_in_a_rotated_box(bev_corners, self.geometry['input_shape'])
+            for pt in bev_pts:
+                for z in np.linspace(z_min, z_max, n_pts):
+                    point_3d = (pt[0], pt[1], z, 1.0)
+                    points.append(point_3d) 
+     
+        points = np.array(points, dtype=float)  
+        points = points.transpose() 
+        print("Before preprocess shape", points.shape)
+        scan = self.lidar_preprocess(points)  # np.zeros(self.geometry['input_shape']
+
+        return scan
 
     def reg_target_transform(self, label_map):
         '''
@@ -231,18 +267,16 @@ class KITTI(Dataset):
         return random.choice(self.velo)
 
     def load_velo_scan(self, item):
-        """Helper method to parse velodyne binary files into a list of scans."""
+        """Helper method to parse velodyne binary files into a list of scans.
+            Returns a top-view array with last dimension z-sliced occupancy and reflectency
+        """
         filename = self.velo[item]
         assert os.path.isfile(filename), filename
         if self.use_npy:
             scan = np.load(filename[:-4]+'.npy')
         else:
-            # c_name = bytes(filename, 'utf-8')
-            # scan = np.zeros(self.geometry['input_shape'], dtype=np.float32)
-            # c_data = ctypes.c_void_p(scan.ctypes.data)
-            # self.LidarLib.createTopViewMaps(c_data, c_name)
-            points = np.fromfile(filename, dtype=np.float32).reshape(-1, 4)      
-            scan = self.lidar_preprocess(points)  
+            points = np.fromfile(filename, dtype=np.float32).reshape(-1, 4)      # n_pts x 4
+            scan = self.lidar_preprocess(points)  # np.zeros(self.geometry['input_shape']
             
         return scan
 
