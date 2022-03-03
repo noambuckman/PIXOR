@@ -426,6 +426,7 @@ def find_reg_target_var_and_mean_kitti(kitti):
     stds = reg_targets.std(axis=1)
     stds = stds + 0.01*np.ones(shape=stds.shape)
     np.set_printoptions(precision=3, suppress=True)
+    print("     |   cos(theta), sin(theta), x,  y, log(l), log(w)")
     print("Means", means)
     print("Stds", stds)
     return means, stds    
