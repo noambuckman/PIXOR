@@ -85,7 +85,7 @@ def eval_batch(config, net, loss_fn, loader, device, eval_range='all'):
                     # pass
                     input_np = input[j].detach().cpu().numpy().transpose(1, 2, 0)
                     # # corners = corners.cpu().detach().numpy()
-                    # pred_image = get_bev(input_np, corners, None, geometry=config["geometry"])
+                    pred_image = get_bev(input_np, corners, None, geometry=config["geometry"])
                     # log_images.append(pred_image)
 
                 arg = (np.array(label_list), corners, scores)
