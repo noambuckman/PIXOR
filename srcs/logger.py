@@ -38,7 +38,7 @@ class Logger(object):
         #     # img_summaries.append(tf.Summary.Value(tag='%s/%d' % (tag, i), image=img_sum))
         #     self.writer.add_image("%s/%d"%(tag, i), img)
         images = np.array(images)
-        images.transpose(0, 1, 2, 3) #move color channel
+        images = images.transpose(0, 3, 1, 2) #move color channel
         print("Imgs Shape", images.shape)
         self.writer.add_images(tag, images, step)
 
