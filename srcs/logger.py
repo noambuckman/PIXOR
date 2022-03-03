@@ -36,7 +36,7 @@ class Logger(object):
             #                            width=img.shape[1])
             # Create a Summary value
             # img_summaries.append(tf.Summary.Value(tag='%s/%d' % (tag, i), image=img_sum))
-            self.writer.add_image("%s/%d"%(tag, i), image=img)
+            self.writer.add_image("%s/%d"%(tag, i), img)
 
 
         # Create and write Summary
