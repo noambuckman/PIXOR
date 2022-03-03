@@ -97,14 +97,15 @@ def get_bev(velo_array, label_list = None, scores = None, geometry=None):
     map_height = velo_array.shape[0]
     intensity = np.zeros((velo_array.shape[0], velo_array.shape[1], 3), dtype=np.uint8)   
      # val = 1 - velo_array[::-1, :, -1]
-    val = (1 - velo_array[::-1, :, :-1].max(axis=2)) * 255
-    intensity[:, :, 0] = val
-    intensity[:, :, 1] = val
-    intensity[:, :, 2] = val
+    plotting = False
+    if plotting:    
+        val = (1 - velo_array[::-1, :, :-1].max(axis=2)) * 255
+        intensity[:, :, 0] = val
+        intensity[:, :, 1] = val
+        intensity[:, :, 2] = val
 
     # FLip in the x direction
-    plotting = False
-    if plotting:
+
         dx, dy, dz = get_discretization_from_geom(geometry, input_layer = True)  
 
         if label_list is not None:
