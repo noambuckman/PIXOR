@@ -103,19 +103,20 @@ def get_bev(velo_array, label_list = None, scores = None, geometry=None):
     intensity[:, :, 2] = val
 
     # FLip in the x direction
+    plotting = False
+    if plotting:
+        dx, dy, dz = get_discretization_from_geom(geometry, input_layer = True)  
 
-    dx, dy, dz = get_discretization_from_geom(geometry, input_layer = True)  
+        if label_list is not None:
+            for corners in label_list:
+                plot_corners = np.zeros(shape=corners.shape)
+                # Convert to Pixels
+                plot_corners[:, 0] = (corners[:, 0] - geometry["W1"])/ dx
+                plot_corners[:, 1] = map_height - (corners[:, 1] / dy + int(map_height//2))
 
-    if label_list is not None:
-        for corners in label_list:
-            plot_corners = np.zeros(shape=corners.shape)
-            # Convert to Pixels
-            plot_corners[:, 0] = (corners[:, 0] - geometry["W1"])/ dx
-            plot_corners[:, 1] = map_height - (corners[:, 1] / dy + int(map_height//2))
-
-            plot_corners_int = plot_corners.astype(int).reshape((-1, 1, 2))
-            cv2.polylines(intensity, [plot_corners_int], True, (255, 0, 0), 2)
-            cv2.line(intensity, tuple(plot_corners_int[2, 0]), tuple(plot_corners_int[3, 0]), (0, 0, 255), 3)
+                plot_corners_int = plot_corners.astype(int).reshape((-1, 1, 2))
+                cv2.polylines(intensity, [plot_corners_int], True, (255, 0, 0), 2)
+                cv2.line(intensity, tuple(plot_corners_int[2, 0]), tuple(plot_corners_int[3, 0]), (0, 0, 255), 3)
 
     return intensity
 
