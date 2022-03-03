@@ -30,6 +30,13 @@ class Logger(object):
         self.writer.add_images(tag, images, step)
         self.writer.flush()
 
+    def config_summary(self, config):
+        config_string = ""
+        for k,v in config:
+            config_string += "%s : %s \n"%(k, v)
+        
+        self.writer.add_text("configs", config_string)
+ 
     # def histo_summary(self, tag, values, step, bins=1000):
     #     """Log a histogram of the tensor of values."""
 

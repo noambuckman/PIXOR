@@ -194,6 +194,8 @@ def train(exp_name, device, clip=True, debug=False):
     # Tensorboard Logger
     train_logger = get_logger(config, 'train')
     val_logger = get_logger(config, 'val')
+    train_logger.config_summary(config)
+    val_logger.config_summary(config)
 
     if config['resume_training']:
         saved_ckpt_path = get_model_name(config)
