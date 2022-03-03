@@ -99,11 +99,16 @@ def get_bev(velo_array, label_list = None, scores = None, geometry=None):
      # val = 1 - velo_array[::-1, :, -1]
     max_intensity = np.max(velo_array[::-1, :, :-1], axis=2 )
     val = (1 - max_intensity) * 255
-    print(type(val))
+    print(val.shape)
+    print(type(val), type(intensity))
+    intensity[:, :, 0] = val
+    intensity[:, :, 1] = val
+    intensity[:, :, 2] = val
+    print(type(intensity))
+
+
     if False: 
-        intensity[:, :, 0] = val
-        intensity[:, :, 1] = val
-        intensity[:, :, 2] = val
+
     
  
     # FLip in the x direction
