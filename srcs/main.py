@@ -87,7 +87,7 @@ def eval_batch(config, net, loss_fn, loader, device, eval_range='all'):
                     input_np = input_np.transpose(1, 2, 0)
                     # # corners = corners.cpu().detach().numpy()
                     pred_image = get_bev(input_np, corners, None, geometry=config["geometry"])
-                    log_images.append(pred_image)
+                    # log_images.append(pred_image)
 
                 arg = (np.array(label_list), corners, scores)
                 args.append(arg)
@@ -283,7 +283,6 @@ def train(exp_name, device, clip=True, debug=False):
             # val_logger.image_summary('Predictions', log_images, epoch + 1)
             print("Epoch {}|Time {:.3f}|Validation Loss: {:.5f}".format(
                 epoch + 1, time.time() - tic, val_metrics['loss']))
-            optimizer.zero_grad() #just in case anything remains
 
 
         # Save Checkpoint
