@@ -70,7 +70,6 @@ class CustomLoss(nn.Module):
         if pos_pixels > 0:
             
             print("Pred NAN:", torch.isnan(loc_preds).sum())
-            print("Target NAN:", torch.isnan(loc_targets).sum())
 
             loc_loss = F.smooth_l1_loss(cls_targets * loc_preds, loc_targets, reduction='sum') / pos_pixels * self.beta
             loc = loc_loss.item()
