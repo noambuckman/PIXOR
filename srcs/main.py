@@ -69,7 +69,7 @@ def eval_batch(config, net, loss_fn, loader, device, eval_range='all'):
             
             toc = time.time()
             # Parallel post-processing
-            predictions = list(torch.split(predictions.detach().cpu().numpy(), 1, dim=0))
+            predictions = list(torch.split(predictions.detach().cpu(), 1, dim=0))
             batch_size = len(predictions)
             with Pool (processes=3) as pool:
                 preds_filtered = pool.starmap(filter_pred, [(config, pred) for pred in predictions])
@@ -100,24 +100,24 @@ def eval_batch(config, net, loss_fn, loader, device, eval_range='all'):
                 all_matches.extend(list(matches[j][1]))
             
             #print(time.time() -tic)
-    all_scores = np.array(all_scores)
-    all_matches = np.array(all_matches)
-    sort_ids = np.argsort(all_scores)
-    all_matches = all_matches[sort_ids[::-1]]
+        all_scores = np.array(all_scores)
+        all_matches = np.array(all_matches)
+        sort_ids = np.argsort(all_scores)
+        all_matches = all_matches[sort_ids[::-1]]
 
-    metrics = {}
-    AP, precisions, recalls, precision, recall = compute_ap(all_matches, gts, preds)
-    metrics['AP'] = AP
-    metrics['Precision'] = precision
-    metrics['Recall'] = recall
-    metrics['Forward Pass Time'] = t_fwd/len(loader.dataset)
-    metrics['Postprocess Time'] = t_nms/len(loader.dataset) 
+        metrics = {}
+        AP, precisions, recalls, precision, recall = compute_ap(all_matches, gts, preds)
+        metrics['AP'] = AP
+        metrics['Precision'] = precision
+        metrics['Recall'] = recall
+        metrics['Forward Pass Time'] = t_fwd/len(loader.dataset)
+        metrics['Postprocess Time'] = t_nms/len(loader.dataset) 
 
-    cls_loss = cls_loss / len(loader)
-    loc_loss = loc_loss / len(loader)
-    metrics['loss'] = cls_loss + loc_loss
+        cls_loss = cls_loss / len(loader)
+        loc_loss = loc_loss / len(loader)
+        metrics['loss'] = cls_loss + loc_loss
 
-    return metrics, precisions, recalls, log_images
+        return metrics, precisions, recalls, log_images
 
 
 def eval_dataset(config, net, loss_fn, loader, device, e_range='all'):
