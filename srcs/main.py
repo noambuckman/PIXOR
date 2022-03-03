@@ -276,7 +276,7 @@ def train(exp_name, device, clip=True, debug=False):
 
         if (epoch +1) % config["save_every"] == 0:
             tic = time.time()
-            with torch.no_grad:
+            with torch.no_grad():
                 val_metrics, _, _, log_images = eval_batch(config, net, loss_fn, test_data_loader, device)
                 for tag, value in val_metrics.items():
                     val_logger.scalar_summary(tag, value, epoch + 1)
