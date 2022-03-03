@@ -217,7 +217,8 @@ def train(exp_name, device, clip=True, debug=False):
         start_time = time.time()    
         
         train_loss = 0
-
+        cls_loss = 0
+        loc_loss = 0
         net.train()
         if config['mGPUs']:
             net.module.set_decode(False)
