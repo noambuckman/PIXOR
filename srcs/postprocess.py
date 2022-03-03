@@ -127,7 +127,7 @@ def filter_pred(config, pred):
 
     reg_pred = torch.zeros((num_boxes, 6))
     for i in range(6):
-        reg_pred[:, i] = torch.mask_select(pred[1+i, ...], activation)
+        reg_pred[:, i] = torch.masked_select(pred[1+i, ...], activation)
     print("Regressed Prediction")
     print(reg_pred)
 
