@@ -276,12 +276,13 @@ def train(exp_name, device, clip=True, debug=False):
 
         if (epoch +1) % config["save_every"] == 0:
             tic = time.time()
-            val_metrics, _, _, log_images = eval_batch(config, net, loss_fn, test_data_loader, device)
-            for tag, value in val_metrics.items():
-                val_logger.scalar_summary(tag, value, epoch + 1)
-            # val_logger.image_summary('Predictions', log_images, epoch + 1)
-            print("Epoch {}|Time {:.3f}|Validation Loss: {:.5f}".format(
-                epoch + 1, time.time() - tic, val_metrics['loss']))
+            with torch.no_grad:
+                val_metrics, _, _, log_images = eval_batch(config, net, loss_fn, test_data_loader, device)
+                for tag, value in val_metrics.items():
+                    val_logger.scalar_summary(tag, value, epoch + 1)
+                # val_logger.image_summary('Predictions', log_images, epoch + 1)
+                print("Epoch {}|Time {:.3f}|Validation Loss: {:.5f}".format(
+                    epoch + 1, time.time() - tic, val_metrics['loss']))
 
         # Save Checkpoint
         if (epoch + 1) == max_epochs or (epoch + 1) % config['save_every'] == 0:
