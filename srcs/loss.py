@@ -68,7 +68,7 @@ class CustomLoss(nn.Module):
         pos_pixels = cls_targets.sum()
 
         if pos_pixels > 0:
-            print("pred", loc_preds)
+            print("pred", cls_targets * loc_preds)
             print("label", loc_targets)
             loc_loss = F.smooth_l1_loss(cls_targets * loc_preds, loc_targets, reduction='sum') / pos_pixels * self.beta
             loc = loc_loss.item()
