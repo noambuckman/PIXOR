@@ -32,7 +32,7 @@ class Logger(object):
 
     def config_summary(self, config):
         config_string = ""
-        for k,v in config:
+        for k,v in config.items():
             config_string += "%s : %s \n"%(k, v)
         
         self.writer.add_text("configs", config_string)
