@@ -101,7 +101,8 @@ def get_bev(velo_array, label_list = None, scores = None, geometry=None):
     intensity[:, :, 0] = val
     intensity[:, :, 1] = val
     intensity[:, :, 2] = val
-    intensity = np.transpose(intensity, (1, 0, 2))
+    # intensity = np.transpose(intensity, (1, 0, 2))
+    print(intensity.shape)
     # FLip in the x direction
     plotting=True
     # print(intensity)
@@ -110,7 +111,7 @@ def get_bev(velo_array, label_list = None, scores = None, geometry=None):
 
         if label_list is not None:
             for corners in label_list:
-                plot_corners = cp.deepcopy(corners)
+                plot_corners = np.zeros(shape=corners.shape)
                 # Convert to Pixels
                 plot_corners[:, 0] = (corners[:, 0] - geometry["W1"])/ dx
                 plot_corners[:, 1] = map_height - (corners[:, 1] / dy + int(map_height//2))
