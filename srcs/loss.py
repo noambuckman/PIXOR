@@ -10,6 +10,7 @@ class CustomLoss(nn.Module):
         self.device = device
         self.alpha = config['alpha']
         self.beta = config['beta']
+        self.positive_weight = 5.0        
 
     def focal_loss(self, x, y):
         '''Focal loss.
@@ -33,8 +34,8 @@ class CustomLoss(nn.Module):
 
         return loss.mean()
 
-    def cross_entropy(self, x, y):
-        return F.binary_cross_entropy(input=x, target=y, reduction='mean')
+    def cross_entropy(self, x, y, weight=None):
+        return F.binary_cross_entropy(input=x, target=y, reduction='mean', weight=weight)
 
 
     def forward(self, preds, targets):
@@ -57,9 +58,10 @@ class CustomLoss(nn.Module):
         elif preds.size(1) == 15:
             cls_preds, loc_preds, _ = preds.split([1, 6, 8], dim=1)
         ################################################################
-        cls_loss = self.focal_loss(cls_preds, cls_targets)
+        # cls_loss = self.focal_loss(cls_preds, cls_targets)
         ################################################################
-        # cls_loss = self.cross_entropy(cls_preds, cls_targets) * self.alpha
+        weight = torch.ones_like(cls_targets) + self.positive_weight*cls_targets # we are weighting cls_targets = 1 much higher
+        cls_loss = self.cross_entropy(cls_preds, cls_targets, weight) * self.alpha
         cls = cls_loss.item()
         ################################################################
         # reg_loss = SmoothL1Loss(loc_preds, loc_targets)
