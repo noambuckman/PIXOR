@@ -355,8 +355,12 @@ class KITTI(Dataset):
         return velo_processed
 
 
-def get_data_loader(batch_size, use_npy, geometry=None, frame_range=10000, target_mean=None, target_std_dev=None, ignore_list=None):
+def get_data_loader(batch_size, use_npy, geometry=None, frame_range=10000, ignore_list=None, debug=False):
+    if debug:
+        use_npy = False
+    
     train_dataset = KITTI(frame_range, use_npy=use_npy, train=True, ignore_list=ignore_list, geometry=geometry)
+    train_dataset.debug = debug
     train_dataset.load_velo()
     train_dataset.compute_mean_std()
 
@@ -364,6 +368,7 @@ def get_data_loader(batch_size, use_npy, geometry=None, frame_range=10000, targe
     
     
     val_dataset = KITTI(frame_range, use_npy=use_npy, train=False, ignore_list=ignore_list, geometry=geometry)
+    val_dataset.debug = debug
     val_dataset.load_velo()
     val_dataset.target_mean = train_dataset.target_mean
     val_dataset.target_std_dev = train_dataset.target_std_dev

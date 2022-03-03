@@ -177,7 +177,7 @@ def eval_dataset(config, net, loss_fn, loader, device, e_range='all'):
     return metrics, precisions, recalls, log_images
 
 
-def train(exp_name, device, clip=True):
+def train(exp_name, device, clip=True, debug=False):
     # Load Hyperparameters
     config, learning_rate, batch_size, max_epochs = load_config(exp_name)
     ignore_list = find_samples_without_labels(config["geometry"])
@@ -185,7 +185,7 @@ def train(exp_name, device, clip=True):
 
     # Dataset and DataLoader
     train_data_loader, test_data_loader = get_data_loader(batch_size, config['use_npy'],
-                                        geometry=config['geometry'], frame_range=config['frame_range'], ignore_list=ignore_list)
+                                        geometry=config['geometry'], frame_range=config['frame_range'], ignore_list=ignore_list, debug=True)
     # Model
     target_mean = train_data_loader.dataset.target_mean
     target_std_dev = train_data_loader.dataset.target_std_dev
@@ -399,6 +399,7 @@ if __name__ == "__main__":
     parser.add_argument('--test_id', type=int, default=0, help="id of the image to test")
     parser.add_argument('--plot_flag', action='store_true', help="plot results")
     parser.add_argument('--clip', action='store_true', help="go gradient clipping")
+    parser.add_argument('--debug', action='store_true', help="go gradient clipping")
 
     args = parser.parse_args()
 
@@ -409,7 +410,7 @@ if __name__ == "__main__":
     print("Using device", device)
 
     if args.mode=='train':
-        train(args.name, device, args.clip)
+        train(args.name, device, args.clip, args.debug)
     if args.mode=='val':
         if args.eval_range is None:
             args.eval_range='all'
