@@ -83,9 +83,7 @@ def eval_batch(config, net, loss_fn, loader, device, eval_range='all'):
                 all_scores.extend(list(scores))
                 if image_id[j] in log_img_list:
                     # pass
-                    print(input[j].requires_grad)
                     input_np = input[j].detach().cpu().numpy()
-                    input_np.requires_grad
                     input_np = input_np.transpose(1, 2, 0)
                     # # corners = corners.cpu().detach().numpy()
                     pred_image = get_bev(input_np, corners, None, geometry=config["geometry"])
@@ -285,6 +283,8 @@ def train(exp_name, device, clip=True, debug=False):
             # val_logger.image_summary('Predictions', log_images, epoch + 1)
             print("Epoch {}|Time {:.3f}|Validation Loss: {:.5f}".format(
                 epoch + 1, time.time() - tic, val_metrics['loss']))
+            optimizer.zero_grad() #just in case anything remains
+
 
         # Save Checkpoint
         if (epoch + 1) == max_epochs or (epoch + 1) % config['save_every'] == 0:
@@ -294,7 +294,6 @@ def train(exp_name, device, clip=True, debug=False):
             else:
                 torch.save(net.state_dict(), model_path)
             print("Checkpoint saved at {}".format(model_path))
-
     print('Finished Training')
 
 
