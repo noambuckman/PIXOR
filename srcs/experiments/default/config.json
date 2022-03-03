@@ -14,7 +14,7 @@
   "save_every": 5,
   "log_every": 100,
 
-  "use_bn": false,
+  "use_bn": true,
   "use_npy": true,
   "mGPUs": false,
   "frame_range": 200,
