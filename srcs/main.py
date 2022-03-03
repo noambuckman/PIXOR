@@ -69,7 +69,7 @@ def eval_batch(config, net, loss_fn, loader, device, eval_range='all'):
             
             toc = time.time()
             # Parallel post-processing
-            predictions = list(torch.split(predictions.cpu().detach(), 1, dim=0))
+            predictions = list(torch.split(predictions.detach().cpu(), 1, dim=0))
             batch_size = len(predictions)
             with Pool (processes=3) as pool:
                 preds_filtered = pool.starmap(filter_pred, [(config, pred) for pred in predictions])
@@ -83,7 +83,7 @@ def eval_batch(config, net, loss_fn, loader, device, eval_range='all'):
                 all_scores.extend(list(scores))
                 if image_id[j] in log_img_list:
                     # pass
-                    input_np = input[j].cpu().detach().numpy().transpose(1, 2, 0)
+                    input_np = input[j].detach().cpu().numpy().transpose(1, 2, 0)
                     # corners = corners.cpu().detach().numpy()
                     pred_image = get_bev(input_np, corners, None, geometry=config["geometry"])
                     log_images.append(pred_image)
@@ -330,7 +330,7 @@ def eval_one(net, loss_fn, config, loader, image_id, device, plot=False, verbose
 
     num_gt = len(label_list)
     num_pred = len(scores)
-    input_np = input.cpu().permute(1, 2, 0).numpy()
+    input_np = input.detach().cpu().permute(1, 2, 0).numpy()
     pred_image = get_bev(input_np, corners)
 
     if plot == True:
