@@ -103,8 +103,8 @@ def get_bev(velo_array, label_list = None, scores = None, geometry=None):
     intensity[:, :, 2] = val
     intensity = np.transpose(intensity, (1, 0, 2))
     # FLip in the x direction
-    plotting=False
-    print(intensity)
+    plotting=True
+    # print(intensity)
     if plotting:  
         dx, dy, dz = get_discretization_from_geom(geometry, input_layer = True)  
 
