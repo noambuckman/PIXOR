@@ -55,7 +55,7 @@ class KITTI(Dataset):
             label_map = torch.from_numpy(label_map)
             label_map = label_map.permute(2, 0, 1)
 
-            scan = self.scan_from_label()
+            scan = self.scan_from_label(label_list)
             scan = torch.from_numpy(scan)
             scan = scan.permute(2, 0, 1)
         else:
