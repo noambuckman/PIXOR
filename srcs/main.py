@@ -63,8 +63,8 @@ def eval_batch(config, net, loss_fn, loader, device, eval_range='all'):
             predictions = net(input)
             t_fwd += time.time() - tac
             loss, cls, loc = loss_fn(predictions, label_map)
-            cls_loss += cls.item()
-            loc_loss += loc.item() 
+            cls_loss += cls
+            loc_loss += loc 
             t_fwd += (time.time() - tic)
             
             toc = time.time()
@@ -82,9 +82,10 @@ def eval_batch(config, net, loss_fn, loader, device, eval_range='all'):
                 preds += len(scores)
                 all_scores.extend(list(scores))
                 if image_id[j] in log_img_list:
-                    input_np = input[j].cpu().permute(1, 2, 0).numpy()
-                    pred_image = get_bev(input_np, corners, None, geometry=config["geometry"])
-                    log_images.append(pred_image)
+                    pass
+                    # input_np = input[j].cpu().permute(1, 2, 0).numpy()
+                    # pred_image = get_bev(input_np, corners, None, geometry=config["geometry"])
+                    # log_images.append(pred_image)
 
                 arg = (np.array(label_list), corners, scores)
                 args.append(arg)
@@ -277,7 +278,7 @@ def train(exp_name, device, clip=True, debug=False):
             val_metrics, _, _, log_images = eval_batch(config, net, loss_fn, test_data_loader, device)
             for tag, value in val_metrics.items():
                 val_logger.scalar_summary(tag, value, epoch + 1)
-            val_logger.image_summary('Predictions', log_images, epoch + 1)
+            # val_logger.image_summary('Predictions', log_images, epoch + 1)
             print("Epoch {}|Time {:.3f}|Validation Loss: {:.5f}".format(
                 epoch + 1, time.time() - tic, val_metrics['loss']))
 
