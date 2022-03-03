@@ -50,15 +50,14 @@ class KITTI(Dataset):
 
     def __getitem__(self, item):
         if self.debug:
-
             label_map, label_list = self.get_label(item)
             self.reg_target_transform(label_map)
             label_map = torch.from_numpy(label_map)
-            scan = scan.permute(2, 0, 1)
             label_map = label_map.permute(2, 0, 1)
 
             scan = self.scan_from_label()
-            scan = torch.from_numpy(scan)            
+            scan = torch.from_numpy(scan)
+            scan = scan.permute(2, 0, 1)
         else:
             scan = self.load_velo_scan(item)
             scan = torch.from_numpy(scan)
