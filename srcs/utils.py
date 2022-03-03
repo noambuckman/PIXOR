@@ -101,11 +101,13 @@ def get_bev(velo_array, label_list = None, scores = None, geometry=None):
     intensity[:, :, 0] = val
     intensity[:, :, 1] = val
     intensity[:, :, 2] = val
-    np.transpose(intensity, (1, 0, 2))
+    intensity = np.transpose(intensity, (1, 0, 2))
     # FLip in the x direction
-    dx, dy, dz = get_discretization_from_geom(geometry, input_layer = True)  
     plotting=False
+    print(intensity)
     if plotting:  
+        dx, dy, dz = get_discretization_from_geom(geometry, input_layer = True)  
+
         if label_list is not None:
             for corners in label_list:
                 plot_corners = cp.deepcopy(corners)
