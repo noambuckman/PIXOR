@@ -28,7 +28,7 @@ class Logger(object):
             images = images.transpose(2, 0, 1) #move color channel
         images = images/256.0
         self.writer.add_images(tag, images, step)
-        self.writer.close()
+        self.writer.flush()
 
     # def histo_summary(self, tag, values, step, bins=1000):
     #     """Log a histogram of the tensor of values."""
