@@ -22,22 +22,24 @@ class Logger(object):
         """Log a list of images."""
 
         img_summaries = []
-        for i, img in enumerate(images):
-            # Write the image to a string
-            try:
-                s = StringIO()
-            except:
-                s = BytesIO()
-            Image.fromarray(img).save(s, format="png")
+        # for i, img in enumerate(images):
+        #     # Write the image to a string
+        #     try:
+        #         s = StringIO()
+        #     except:
+        #         s = BytesIO()
+        #     Image.fromarray(img).save(s, format="png")
 
-            # # Create an Image object
-            # img_sum = tf.Summary.Image(encoded_image_string=s.getvalue(),
-            #                            height=img.shape[0],
-            #                            width=img.shape[1])
-            # Create a Summary value
-            # img_summaries.append(tf.Summary.Value(tag='%s/%d' % (tag, i), image=img_sum))
-            self.writer.add_image("%s/%d"%(tag, i), img)
-
+        #     # # Create an Image object
+        #     # img_sum = tf.Summary.Image(encoded_image_string=s.getvalue(),
+        #     #                            height=img.shape[0],
+        #     #                            width=img.shape[1])
+        #     # Create a Summary value
+        #     # img_summaries.append(tf.Summary.Value(tag='%s/%d' % (tag, i), image=img_sum))
+        #     self.writer.add_image("%s/%d"%(tag, i), img)
+        images = np.array(images)
+        print("Imgs Shape", images.shape)
+        self.writer.add_images(tag, images, step)
 
         # Create and write Summary
         # summary = tf.Summary(value=img_summaries)
