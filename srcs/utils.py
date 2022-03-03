@@ -9,6 +9,7 @@ import json
 import os
 import logger
 from shapely.geometry import Point, Polygon
+import copy as cp
 def transform_label2metric(label, geometry):
     '''
     :param label: numpy array of shape [..., 2] of coordinates in label map space
@@ -84,6 +85,15 @@ def get_discretization_from_geom(geom, input_layer=True):
     return dx, dy, dz
 
 def get_bev(velo_array, label_list = None, scores = None, geometry=None):
+    ''' Compute the intensity BEV matrix and plot
+        velo_array: [W,L,H+1] discretized grid of velodyne where (0,0) starts a L1, W1 
+        label_list: list of BEV corners (in metric Velo frame)
+
+        returns:
+            intensity: [H,W,3] RGB intensity map in input dimensions
+    
+    '''
+    
     map_height = velo_array.shape[0]
     intensity = np.zeros((velo_array.shape[0], velo_array.shape[1], 3), dtype=np.uint8)   
      # val = 1 - velo_array[::-1, :, -1]
@@ -96,12 +106,11 @@ def get_bev(velo_array, label_list = None, scores = None, geometry=None):
     dx, dy, dz = get_discretization_from_geom(geometry, input_layer = True)    
     if label_list is not None:
         for corners in label_list:
-            plot_corners = corners
+            plot_corners = cp.deepcopy(corners)
+            # Convert to Pixels
             plot_corners[:, 0] = (corners[:, 0] - geometry["W1"])/ dx
-            plot_corners[:, 1] = corners[:, 1] / dy
+            plot_corners[:, 1] = map_height - (corners[:, 1] / dy + int(map_height//2))
 
-            plot_corners[:, 1] += int(map_height // 2)
-            plot_corners[:, 1] = map_height - plot_corners[:, 1]
             plot_corners = plot_corners.astype(int).reshape((-1, 1, 2))
             cv2.polylines(intensity, [plot_corners], True, (255, 0, 0), 2)
             cv2.line(intensity, tuple(plot_corners[2, 0]), tuple(plot_corners[3, 0]), (0, 0, 255), 3)
@@ -123,7 +132,7 @@ def plot_bev(velo_array, label_list = None, scores = None, window_name='GT', sav
     '''
 
     intensity = get_bev(velo_array, label_list, scores, geom)
-
+    
     if save_path != None:
         print(save_path)
         cv2.imwrite(save_path, intensity)

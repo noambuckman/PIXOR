@@ -166,7 +166,15 @@ class KITTI(Dataset):
 
 
     def get_corners(self, bbox, R_velo_to_cam, t_velo_to_cam):
+        ''' Return BEV corners in Velodyne Ref Frame
+            params:
+                bbox: (7,1) Kitti bbox information (l, w, h, x_cam, y_cam, z_cam, yaw)
 
+            return:
+                bev_corners: np.array((4,2)) [rear_left, rear_right, front_right, front_left]
+                reg_target: list[6] [cos(yaw), sin(yaw), x, y, w, l]
+
+        '''
         # w, h, l, y, z, x, yaw = bbox[8:15]
         # y = -y
 

@@ -242,7 +242,7 @@ class Decoder(nn.Module):
         :param x: Tensor 6-channel geometry
         6 channel map of [cos(yaw), sin(yaw), log(x), log(y), w, l]
         Shape of x: (B, C=6, H=200, W=175)
-        :return: Concatenated Tensor of 8 channel geometry map of bounding box corners
+        :return: Concatenated Tensor of 8 channel geometry map of bounding box corners in Velodyne ref frame
         8 channel are [rear_left_x, rear_left_y,
                         rear_right_x, rear_right_y,
                         front_right_x, front_right_y,

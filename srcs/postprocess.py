@@ -105,6 +105,16 @@ def non_max_suppression(boxes, scores, threshold):
     return np.array(pick, dtype=np.int32)
 
 def filter_pred(config, pred):
+    ''' 
+        Filter bboxes by cls_threshold and nms_iou_threshold 
+        Inputs: 
+            config: config dictionary
+            pred: [16 x W X H] array with output predictions from networks
+        Outputs:
+            corners: bev corners of top bbox predictions 
+            scores: scores of top bbox predictions
+    '''
+
     if len(pred.size()) == 4:
         if pred.size(0) == 1:
             pred.squeeze_(0)
@@ -128,8 +138,7 @@ def filter_pred(config, pred):
     reg_pred = torch.zeros((num_boxes, 6))
     for i in range(6):
         reg_pred[:, i] = torch.masked_select(pred[1+i, ...], activation)
-    print("Regressed Prediction")
-    print(reg_pred)
+
 
     # NMS
     selected_ids = non_max_suppression(corners, scores, config['nms_iou_threshold'])
