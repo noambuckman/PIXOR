@@ -1,3 +1,4 @@
+from importlib_metadata import requires
 import torch
 import torch.nn
 import cv2
@@ -97,13 +98,18 @@ def get_bev(velo_array, label_list = None, scores = None, geometry=None):
     map_height = velo_array.shape[0]
     intensity = np.zeros((velo_array.shape[0], velo_array.shape[1], 3), dtype=np.uint8)   
      # val = 1 - velo_array[::-1, :, -1]
+  
+    val = np.max((1 - velo_array[::-1, :, :-1]), axis=2) * 255
+    print(val.shape)
+    try:
+        print(val.requires_grad)
+    except Exception:
+        print("Exception, no grad")
+    intensity[:, :, 0] = val
+    intensity[:, :, 1] = val
+    intensity[:, :, 2] = val
     plotting = False
-    if plotting:    
-        val = (1 - velo_array[::-1, :, :-1].max(axis=2)) * 255
-        intensity[:, :, 0] = val
-        intensity[:, :, 1] = val
-        intensity[:, :, 2] = val
-
+    if plotting:  
     # FLip in the x direction
 
         dx, dy, dz = get_discretization_from_geom(geometry, input_layer = True)  
