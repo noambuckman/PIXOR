@@ -97,11 +97,10 @@ def get_bev(velo_array, label_list = None, scores = None, geometry=None):
     map_height = velo_array.shape[0]
     intensity = np.zeros((velo_array.shape[0], velo_array.shape[1], 3), dtype=np.uint8)   
      # val = 1 - velo_array[::-1, :, -1]
-
+    max_intensity = np.max(velo_array[::-1, :, :-1], axis=2 )
+    val = (1 - max_intensity) * 255
+    print(type(val))
     if False: 
-        max_intensity = np.max(velo_array[::-1, :, :-1], axis=2 )
-    
-        val = (1 - max_intensity) * 255
         intensity[:, :, 0] = val
         intensity[:, :, 1] = val
         intensity[:, :, 2] = val
