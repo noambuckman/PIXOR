@@ -11,7 +11,7 @@
   "beta": 0.1,
   "lr_decay_at": [20, 30],
   "max_epochs": 50,
-  "save_every": 5,
+  "save_every": 10,
   "log_every": 100,
 
   "use_bn": true,
