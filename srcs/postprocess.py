@@ -124,8 +124,13 @@ def filter_pred(config, pred):
         corners[:, i - 7] = torch.masked_select(pred[i, ...], activation)
     corners = corners.view(-1, 4, 2).numpy()
     scores = torch.masked_select(cls_pred, activation).cpu().numpy()
-    print("Corners Shape", corners.shape)
-    print("Corners", corners)
+
+    reg_pred = torch.zeros((num_boxes, 6))
+    for i in range(6):
+        reg_pred[:, i] = torch.mask_select(pred[1+i, ...], activation)
+    print("Regressed Prediction")
+    print(reg_pred)
+
     # NMS
     selected_ids = non_max_suppression(corners, scores, config['nms_iou_threshold'])
     corners = corners[selected_ids]
