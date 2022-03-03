@@ -111,9 +111,9 @@ def get_bev(velo_array, label_list = None, scores = None, geometry=None):
             plot_corners[:, 0] = (corners[:, 0] - geometry["W1"])/ dx
             plot_corners[:, 1] = map_height - (corners[:, 1] / dy + int(map_height//2))
 
-            plot_corners = plot_corners.astype(int).reshape((-1, 1, 2))
-            cv2.polylines(intensity, [plot_corners], True, (255, 0, 0), 2)
-            cv2.line(intensity, tuple(plot_corners[2, 0]), tuple(plot_corners[3, 0]), (0, 0, 255), 3)
+            plot_corners_int = plot_corners.astype(int).reshape((-1, 1, 2))
+            cv2.polylines(intensity, [plot_corners_int], True, (255, 0, 0), 2)
+            cv2.line(intensity, tuple(plot_corners_int[2, 0]), tuple(plot_corners_int[3, 0]), (0, 0, 255), 3)
 
     return intensity
 
