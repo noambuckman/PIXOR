@@ -183,11 +183,12 @@ def train(exp_name, device, clip=True):
     ignore_list = find_samples_without_labels(config["geometry"])
     print("ignore list", ignore_list)
 
-    target_mean, target_std_dev = find_reg_target_var_and_mean(config["geometry"])
     # Dataset and DataLoader
     train_data_loader, test_data_loader = get_data_loader(batch_size, config['use_npy'],
-                                        geometry=config['geometry'], frame_range=config['frame_range'],  target_mean=target_mean, target_std_dev=target_std_dev, ignore_list=ignore_list)
+                                        geometry=config['geometry'], frame_range=config['frame_range'], ignore_list=ignore_list)
     # Model
+    target_mean = train_data_loader.dataset.target_mean
+    target_std_dev = train_data_loader.dataset.target_std_dev
     net, loss_fn, optimizer, scheduler = build_model(config, device, train=True, target_mean=target_mean, target_std_dev=target_std_dev)
 
     # Tensorboard Logger

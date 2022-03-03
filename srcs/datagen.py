@@ -33,14 +33,14 @@ class KITTI(Dataset):
     # target_std_dev = np.array([0.866, 0.5, 0.954, 0.668, 0.09, 0.111])
 
 
-    def __init__(self, frame_range = 10000, use_npy=False, train=True, target_mean = None, target_std_dev=None, ignore_list=None):
+    def __init__(self, frame_range = 10000, use_npy=False, train=True, target_mean = None, target_std_dev=None, ignore_list=None, geometry=None):
         self.frame_range = frame_range
         self.velo = []
         self.use_npy = use_npy
         # self.LidarLib = ctypes.cdll.LoadLibrary('preprocess/LidarPreprocess.so')
         self.image_sets = self.load_imageset(train, ignore_list) # names
         
-
+        self.geometry = geometry
         self.target_mean = target_mean
         self.target_std_dev = target_std_dev
         self.debug = False
@@ -133,6 +133,12 @@ class KITTI(Dataset):
             
             return names
     
+    def compute_mean_std(self):
+        ''' Compute the mean and std and then save it'''
+        means, stdevs = find_reg_target_var_and_mean_kitti(self)
+        self.target_mean = means
+        self.target_std_dev = stdevs
+
     # def interpret_kitti_label(self, bbox): #DEPRECATED TO INCLUDE CALIB
     #     w, h, l, y, z, x, yaw = bbox[8:15]
     #     y = -y
@@ -342,15 +348,17 @@ class KITTI(Dataset):
 
 
 def get_data_loader(batch_size, use_npy, geometry=None, frame_range=10000, target_mean=None, target_std_dev=None, ignore_list=None):
-    train_dataset = KITTI(frame_range, use_npy=use_npy, train=True, target_mean=target_mean, target_std_dev=target_std_dev, ignore_list=ignore_list)
-    if geometry is not None:
-        train_dataset.geometry = geometry
+    train_dataset = KITTI(frame_range, use_npy=use_npy, train=True, ignore_list=ignore_list, geometry=geometry)
     train_dataset.load_velo()
+    train_dataset.compute_mean_std()
+
     train_data_loader = DataLoader(train_dataset, shuffle=True, batch_size=batch_size, num_workers=3)
-    val_dataset = KITTI(frame_range, use_npy=use_npy, train=False,  target_mean=target_mean, target_std_dev=target_std_dev, ignore_list=ignore_list)
-    if geometry is not None:
-        val_dataset.geometry = geometry
+    
+    
+    val_dataset = KITTI(frame_range, use_npy=use_npy, train=False, ignore_list=ignore_list, geometry=geometry)
     val_dataset.load_velo()
+    val_dataset.target_mean = train_dataset.target_mean
+    val_dataset.target_std_dev = train_dataset.target_std_dev
     val_data_loader = DataLoader(val_dataset, shuffle=False, batch_size=batch_size * 4, num_workers=8)
 
     print("------------------------------------------------------------------")
