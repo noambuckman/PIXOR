@@ -109,7 +109,6 @@ class KITTI(Dataset):
     def load_imageset(self, train, ignore_list=None):
         if ignore_list is None:
             ignore_list = []
-        print("ignore list", ignore_list)
         path = KITTI_PATH
         if train:
             path = os.path.join(path, "train.txt")
@@ -471,9 +470,7 @@ def find_samples_without_labels(geom=None):
     sample_ids = []
 
     for train in [True, False]:
-        k = KITTI(use_npy=True, train=train)
-        if geom is not None:
-            k.geometry = geom
+        k = KITTI(use_npy=True, train=train, geometry=geom)
             
         for i in range(len(k)):
             label_map, _ = k.get_label(i)
@@ -482,7 +479,6 @@ def find_samples_without_labels(geom=None):
                 print(k.image_sets[i], "Has No Labels")
                 sample_ids.append(k.image_sets[i])
         
-    print(sample_ids)
     return sample_ids
 
 

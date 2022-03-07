@@ -7,7 +7,7 @@ import random
 from torch.multiprocessing import Pool
 
 from loss import CustomLoss
-from datagen import get_data_loader, find_reg_target_var_and_mean, find_samples_without_labels
+from datagen import get_data_loader, find_samples_without_labels
 from model import PIXOR
 from utils import get_model_name, load_config, get_logger, plot_bev, plot_label_map, plot_pr_curve, get_bev
 from postprocess import filter_pred, compute_matches, compute_ap
@@ -105,6 +105,7 @@ def eval_batch(config, net, loss_fn, loader, device, eval_range='all'):
         all_matches = all_matches[sort_ids[::-1]]
 
         metrics = {}
+        print("eval: # matches: %d    # gts: %d    # preds: %d "%(all_matches, gts, preds))
         AP, precisions, recalls, precision, recall = compute_ap(all_matches, gts, preds)
         metrics['AP'] = AP
         metrics['Precision'] = precision

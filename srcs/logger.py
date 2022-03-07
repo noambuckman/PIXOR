@@ -1,11 +1,6 @@
 from torch.utils.tensorboard import SummaryWriter
 
 import numpy as np
-from PIL import Image
-try:
-    from StringIO import StringIO  # Python 2.7
-except ImportError:
-    from io import BytesIO  # Python 3.x
 
 
 class Logger(object):
