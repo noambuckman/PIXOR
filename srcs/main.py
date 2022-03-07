@@ -108,7 +108,7 @@ def eval_batch(config, net, loss_fn, loader, device, eval_range='all'):
         all_matches = all_matches[sort_ids[::-1]]
 
         metrics = {}
-        print("eval: # matches: %d    # gts: %d    # preds: %d "%(all_matches, gts, preds))
+        print("eval:  # gts: %d    # preds: %d "%(gts, preds))
         AP, precisions, recalls, precision, recall = compute_ap(all_matches, gts, preds)
         metrics['AP'] = AP
         metrics['Precision'] = precision
