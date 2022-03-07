@@ -31,6 +31,9 @@ def build_model(config, device, train=True, target_mean=None, target_std_dev=Non
     optimizer = torch.optim.SGD(net.parameters(), lr=config['learning_rate'], momentum=config['momentum'], weight_decay=config['weight_decay'])
     scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=config['lr_decay_at'], gamma=0.1)
 
+    optimizer = torch.optim.Adam(net.parameters(), lr=config['learning_rate'], weight_decay=config['weight_decay'])
+    scheduler = None
+
     return net, loss_fn, optimizer, scheduler
 
 
@@ -261,7 +264,7 @@ def train(exp_name, device, clip=True, debug=False):
 
             step += 1
             #print(time.time() - tic)            
-        scheduler.step()
+        # scheduler.step()
 
         # Record Training Loss
         train_loss = train_loss / len(train_data_loader)
