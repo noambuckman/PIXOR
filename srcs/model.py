@@ -14,12 +14,14 @@ def conv3x3(in_planes, out_planes, stride=1, bias=False):
 class BasicBlock(nn.Module):
     expansion = 1
 
-    def __init__(self, in_planes, planes, stride=1, downsample=None):
+    def __init__(self, in_planes, planes, stride=1, downsample=None, use_bn=True):
         super(BasicBlock, self).__init__()
-        self.conv1 = conv3x3(in_planes, planes, stride, bias=True)
+        bias = not use_bn
+        self.use_bn = use_bn
+        self.conv1 = conv3x3(in_planes, planes, stride, bias=bias)
         self.bn1 = nn.BatchNorm2d(planes)
         self.relu = nn.ReLU(inplace=True)
-        self.conv2 = conv3x3(planes, planes, bias=True)
+        self.conv2 = conv3x3(planes, planes, bias=bias)
         self.bn2 = nn.BatchNorm2d(planes)
         self.downsample = downsample
         self.stride = stride
@@ -28,11 +30,13 @@ class BasicBlock(nn.Module):
         residual = x
 
         out = self.conv1(x)
-        #out = self.bn1(out)
+        if self.bn: 
+            out = self.bn1(out)
         out = self.relu(out)
-
+        
         out = self.conv2(out)
-        #out = self.bn2(out)
+        if self.bn:
+            out = self.bn2(out)
 
         if self.downsample is not None:
             residual = self.downsample(x)
@@ -89,30 +93,31 @@ class BackBone(nn.Module):
         self.use_bn = use_bn
 
         # Block 1
-        input_dim = geom["input_shape"][2] #does this work?
-        self.conv1 = conv3x3(input_dim, 32)
-        self.conv2 = conv3x3(32, 32)
-        self.bn1 = nn.BatchNorm2d(32)
-        self.bn2 = nn.BatchNorm2d(32)
+        input_channel_dim = geom["input_shape"][2] 
+        conv_channel_dim = input_channel_dim - 2
+        self.conv1 = conv3x3(input_channel_dim, conv_channel_dim) #this was previous 32
+        self.bn1 = nn.BatchNorm2d(conv_channel_dim)
+        self.conv2 = conv3x3(conv_channel_dim, conv_channel_dim)
+        self.bn2 = nn.BatchNorm2d(conv_channel_dim)
         self.relu = nn.ReLU(inplace=True)
 
 
         # Block 2-5
-        self.in_planes = 32
+        self.in_planes = conv_channel_dim
         self.block2 = self._make_layer(block, 24, num_blocks=num_block[0])
         self.block3 = self._make_layer(block, 48, num_blocks=num_block[1])
         self.block4 = self._make_layer(block, 64, num_blocks=num_block[2])
         self.block5 = self._make_layer(block, 96, num_blocks=num_block[3])
 
         # Lateral layers
-        self.latlayer1 = nn.Conv2d(384, 196, kernel_size=1, stride=1, padding=0)
+        self.latlayer1 = nn.Conv2d(384, 196, kernel_size=1, stride=1, padding=0)  #384 = 4 * 96
         self.latlayer2 = nn.Conv2d(256, 128, kernel_size=1, stride=1, padding=0)
         self.latlayer3 = nn.Conv2d(192, 96, kernel_size=1, stride=1, padding=0)
 
         # Top-down layers
         self.deconv1 = nn.ConvTranspose2d(196, 128, kernel_size=3, stride=2, padding=1, output_padding=1)
-        p = 0 if geom['label_shape'][1] == 175 else 1
-        p = 0
+        p = 0 if geom['label_shape'][1] % 16 != 0 else 1 #todo this should handle diferent input/outputs
+        # p = 1
         self.deconv2 = nn.ConvTranspose2d(128, 96, kernel_size=3, stride=2, padding=1, output_padding=(1, p))
 
     def forward(self, x):
@@ -229,11 +234,14 @@ class Decoder(nn.Module):
         # self.grid_size = 4 * geom["dx"]
              
         # cost\theta, sin\theta, dx, dy, log(w), log(l)  
-        # self.target_mean = [0.008, 0.001, 0.202, 0.2, 0.43, 1.368]
-        # self.target_std_dev = [0.866, 0.5, 0.954, 0.668, 0.09, 0.111]        
+       
         # scale all the metrix dimensions by 10
-        self.target_mean = target_mean
-        self.target_std_dev = target_std_dev
+        if target_mean is None:
+            self.target_mean = [0.008, 0.001, 0.202, 0.2, 0.43, 1.368]
+            self.target_std_dev = [0.866, 0.5, 0.954, 0.668, 0.09, 0.111]             
+        else:
+            self.target_mean = target_mean
+            self.target_std_dev = target_std_dev
 
 
     def forward(self, x):
@@ -265,11 +273,11 @@ class Decoder(nn.Module):
         sin_t = torch.sin(theta)
 
         x_grid_size, y_grid_size, _ = get_discretization_from_geom(self.geometry_dict, input_layer=False)
-        
+
         x = torch.arange(self.geometry[2], self.geometry[3], x_grid_size, dtype=torch.float32, device=device)
         y = torch.arange(self.geometry[0], self.geometry[1], y_grid_size, dtype=torch.float32, device=device)
         
-       
+
         
         
         yy, xx = torch.meshgrid([y, x])
@@ -301,14 +309,15 @@ class PIXOR(nn.Module):
     Note that we convert the dimensions to [C, H, W] for PyTorch's nn.Conv2d functions
     '''
 
-    def __init__(self, geom, use_bn=True, decode=False, target_mean=None, target_std_dev=None):
+    def __init__(self, geom, use_bn=True, decode=False, target_mean=None, target_std_dev=None, use_fov_mask=False):
         super(PIXOR, self).__init__()
         self.backbone = BackBone(Bottleneck, [3, 6, 6, 3], geom, use_bn)
         self.header = Header(use_bn)
         self.corner_decoder = Decoder(geom, target_mean=target_mean, target_std_dev=target_std_dev)
         self.use_decode = decode
         self.cam_fov_mask = maskFOV_on_BEV(geom['label_shape'])
-        
+        self.use_fov_mask = use_fov_mask
+
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
                 n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
@@ -337,8 +346,10 @@ class PIXOR(nn.Module):
 
         features = self.backbone(x)
         cls, reg = self.header(features)
-        self.cam_fov_mask = self.cam_fov_mask.to(device)
-        cls = cls * self.cam_fov_mask
+
+        if self.use_fov_mask:
+            self.cam_fov_mask = self.cam_fov_mask.to(device)
+            cls = cls * self.cam_fov_mask
         if self.use_decode:
             decoded = self.corner_decoder(reg)
             # Return tensor(Batch_size, height, width, channels)
@@ -353,20 +364,21 @@ class PIXOR(nn.Module):
 
 def test_decoder(decode = True):
     geom = {
-        "L1": -40.0,
-        "L2": 40.0,
-        "W1": 0.0,
-        "W2": 70.0,
-        "H1": -2.5,
-        "H2": 1.0,
-        "input_shape": [800, 700, 36],
+        "L1": -4.0,
+        "L2": 4.0,
+        "W1": -1.0,
+        "W2": 5.0,
+        "H1": -.25,
+        "H2": .25,
+        "input_shape": [800, 700, 13],
         "label_shape": [200, 175, 7]
     }
     print("Testing PIXOR decoder")
-    net = PIXOR(geom, use_bn=False)
+    net = PIXOR(geom, use_bn=True)
     net.set_decode(decode)
-    scan = torch.autograd.Variable(torch.randn(2, 800, 700, 36))
-    scan = scan.permute(0, 3, 1,2 )
+    print(net)
+    scan = torch.autograd.Variable(torch.randn(2, geom["input_shape"][0], geom["input_shape"][1], 13))
+    scan = scan.permute(0, 3, 1, 2 )
     preds = net(scan)
 
     print("Predictions output size", preds.size())
