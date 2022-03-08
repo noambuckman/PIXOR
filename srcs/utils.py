@@ -317,7 +317,7 @@ def save_config(config, exp_name, parent_dir=""):
 
     
     with open(path) as file:
-        config = json.dump(config, file)
+        json.dump(config, file)
 
     return path
 
