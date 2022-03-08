@@ -5,10 +5,9 @@ import os.path
 import numpy as np
 import time
 import torch
-import ctypes
 from utils import load_config, get_discretization_from_geom, plot_bev, get_points_in_a_rotated_box, get_points_in_a_rotated_box_metric, plot_label_map, transform_metric2label, transform_label2metric
 from torch.utils.data import Dataset, DataLoader
-
+import argparse
 #KITTI_PATH = '/home/autoronto/Kitti/object'
 KITTI_PATH = '/mnt/ssd2/od/KITTI'
 KITTI_PATH = '/home/data/kitti'
@@ -33,12 +32,12 @@ class KITTI(Dataset):
     # target_std_dev = np.array([0.866, 0.5, 0.954, 0.668, 0.09, 0.111])
 
 
-    def __init__(self, frame_range = 10000, use_npy=False, train=True, target_mean = None, target_std_dev=None, ignore_list=None, geometry=None):
+    def __init__(self, frame_range = 10000, use_npy=False, train=True, target_mean = None, target_std_dev=None, ignore_list=None, geometry=None, fake=False):
         self.frame_range = frame_range
         self.velo = []
         self.use_npy = use_npy
         # self.LidarLib = ctypes.cdll.LoadLibrary('preprocess/LidarPreprocess.so')
-        self.image_sets = self.load_imageset(train, ignore_list) # names
+        self.image_sets = self.load_imageset(train, ignore_list, fake) # names
         
         self.geometry = geometry
         self.target_mean = target_mean
@@ -106,7 +105,9 @@ class KITTI(Dataset):
         reg_map[index] = (reg_map[index] - self.target_mean)/self.target_std_dev
 
 
-    def load_imageset(self, train, ignore_list=None):
+    def load_imageset(self, train, ignore_list=None, fake=False):
+        if fake:
+            return []
         if ignore_list is None:
             ignore_list = []
         path = KITTI_PATH
@@ -518,14 +519,19 @@ def test():
 
 
 if __name__=="__main__":
-    config, _, _, _ = load_config("default")
 
     # test0(id=25)
     # find_samples_without_labels(config["geometry"])
     # find_reg_target_var_and_mean(config["geometry"])
+    parser = argparse.ArgumentParser(description='Data generation')
+    parser.add_argument('--name', required=True, default="default", help="name of the experiment")
+    parser.add_argument('--debug', action='store_true', help="go gradient clipping")
 
+    args = parser.parse_args()    
     
+    config, _, _, _ = load_config(args.name)
+
     print("Processing Train")
-    preprocess_to_npy(True, geometry=config["geometry"], debug=True)
+    preprocess_to_npy(True, geometry=config["geometry"], debug=args.debug)
     print("Processing Val")
-    preprocess_to_npy(False, geometry=config["geometry"], debug=True)
+    preprocess_to_npy(False, geometry=config["geometry"], debug=args.debug)
