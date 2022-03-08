@@ -309,6 +309,20 @@ def load_config(exp_name, parent_dir=""):
 
     return config, learning_rate, batch_size, max_epochs
 
+def save_config(config, exp_name, parent_dir=""):
+    ''' Save the configuration file'''
+     
+    path = os.path.join(parent_dir, 'experiments', exp_name, 'config.json')
+    assert config['name']==exp_name, print("Config name %s doesn't match exp_name %s"%(config['name'], exp_name))
+
+    
+    with open(path) as file:
+        config = json.dump(config, file)
+
+    return path
+
+
+
 def get_model_name(config, epoch=None, parent_dir=""):
     """ Generate a name for the model consisting of all the hyperparameter values
 
