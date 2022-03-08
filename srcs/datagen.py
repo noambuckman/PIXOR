@@ -291,13 +291,7 @@ class KITTI(Dataset):
             points = np.fromfile(filename, dtype=np.float32).reshape(-1, 4)      # n_pts x 4
             scan = self.lidar_preprocess(points)  # np.zeros(self.geometry['input_shape']
             
-        return scan
-
-    def load_velo_scan2(self, item):
-        filename = self.velo[item]
-        points = np.fromfile(filename, dtype=np.float32).reshape(-1, 4)        
-        
-        return points      
+        return scan 
 
     def load_velo(self):
         """Load velodyne [x,y,z,reflectance] scan data from binary files."""
