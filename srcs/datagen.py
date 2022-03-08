@@ -525,13 +525,12 @@ if __name__=="__main__":
     # find_reg_target_var_and_mean(config["geometry"])
     parser = argparse.ArgumentParser(description='Data generation')
     parser.add_argument('--name', required=True, default="default", help="name of the experiment")
-    parser.add_argument('--debug', action='store_true', help="go gradient clipping")
 
     args = parser.parse_args()    
     
     config, _, _, _ = load_config(args.name)
 
     print("Processing Train")
-    preprocess_to_npy(True, geometry=config["geometry"], debug=args.debug)
+    preprocess_to_npy(True, geometry=config["geometry"])
     print("Processing Val")
-    preprocess_to_npy(False, geometry=config["geometry"], debug=args.debug)
+    preprocess_to_npy(False, geometry=config["geometry"])
