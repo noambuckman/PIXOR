@@ -18,6 +18,7 @@
   "use_npy": false,
   "mGPUs": false,
   "frame_range": 10000,
+  "bce_weight": 10.0,
 
   "cls_threshold": 0.05,
   "nms_iou_threshold": 0.1,
@@ -30,7 +31,7 @@
         "W2": 6.0,
         "H1": -0.25,
         "H2": 0.25,
-        "input_shape": [800, 700, 13],
+        "input_shape": [800, 700, 11],
         "label_shape": [200, 175, 7]
     }
 }

@@ -10,7 +10,9 @@ class CustomLoss(nn.Module):
         self.device = device
         self.alpha = config['alpha']
         self.beta = config['beta']
-        self.positive_weight = 99.0        
+        self.positive_weight = 1.0
+        if 'beta' in config:
+            self.positive_weight = config['bce_weight']        
 
     def focal_loss(self, x, y):
         '''Focal loss.
