@@ -316,7 +316,7 @@ def save_config(config, exp_name, parent_dir=""):
     assert config['name']==exp_name, print("Config name %s doesn't match exp_name %s"%(config['name'], exp_name))
 
     
-    with open(path) as file:
+    with open(path, 'w') as file:
         json.dump(config, file)
 
     return path
