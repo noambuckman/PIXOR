@@ -195,8 +195,8 @@ def train(exp_name, device, clip=True, debug=False):
     target_mean = train_data_loader.dataset.target_mean
     target_std_dev = train_data_loader.dataset.target_std_dev
 
-    config["target_mean"] = target_mean
-    config["target_std_dev"] = target_std_dev
+    config["target_mean"] = target_mean.tolist()[0]
+    config["target_std_dev"] = target_std_dev.tolist()[0]
     save_config(config, exp_name)
 
     net, loss_fn, optimizer, scheduler = build_model(config, device, train=True, target_mean=target_mean, target_std_dev=target_std_dev)
