@@ -194,7 +194,8 @@ def train(exp_name, device, clip=True, debug=False):
     # Model
     target_mean = train_data_loader.dataset.target_mean
     target_std_dev = train_data_loader.dataset.target_std_dev
-
+    print(target_mean.shape)
+    print(target_mean.to_list())
     config["target_mean"] = target_mean.tolist()[0]
     config["target_std_dev"] = target_std_dev.tolist()[0]
     save_config(config, exp_name)
