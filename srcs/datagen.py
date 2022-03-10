@@ -341,9 +341,9 @@ class KITTI(Dataset):
             z = int((velo[i, 2]- self.geometry['H1']) / dz)
             velo_processed[x, y, z] = 1
 
-            velo_processed[x, y, -1] += velo[i, 3]
+            velo_processed[x, y, -1] += float(velo[i, 3])
             intensity_map_count[x, y] += 1
-        velo_processed[:,:,-1] = np.where(intensity_map_count > 0, velo_processed[:, :, -1] / intensity_map_count, 0)
+        velo_processed[:,:,-1] = np.where(intensity_map_count > 0, velo_processed[:, :, -1] / float(intensity_map_count), 0)
         
         # # velo_processed[:, :, -1] = np.divide(velo_processed[:, :, -1],  intensity_map_count,
         # #                                      where=intensity_map_count != 0)
