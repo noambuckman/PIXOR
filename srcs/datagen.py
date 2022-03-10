@@ -345,7 +345,7 @@ class KITTI(Dataset):
             intensity_map_count[x, y] += 1.0
         
         print(np.isfinite(velo_processed[:,:,-1]).all())
-        print(np.isfinite(intensity_map_count[:,:,-1]).all())
+        print(np.isfinite(intensity_map_count).all())
         print(" ")
         avg_intensity = np.where(intensity_map_count > 0.01, velo_processed[:, :, -1] / intensity_map_count, 0)
         velo_processed[:, :, -1] = avg_intensity
