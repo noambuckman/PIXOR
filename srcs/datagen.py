@@ -480,8 +480,8 @@ def find_samples_without_labels(geom=None):
 
 
 def preprocess_to_npy(train=True, geometry=None):
-    k = KITTI(train=train, geometry=geometry)
-    
+    k = KITTI(train=train, geometry=geometry, use_npy=False)
+
     k.load_velo()
     for item, name in enumerate(k.velo):
         scan = k.load_velo_scan(item)
