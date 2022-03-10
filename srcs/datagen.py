@@ -332,19 +332,21 @@ class KITTI(Dataset):
         velo_processed = np.zeros(self.geometry['input_shape'], dtype=np.float32)
         intensity_map_count = np.zeros((velo_processed.shape[0], velo_processed.shape[1]),dtype=int)
         velo = self.passthrough(scan)
-
-
         dx, dy, dz = get_discretization_from_geom(self.geometry, input_layer=True)
         for i in range(velo.shape[0]):
-            x = int((velo[i, 1]-self.geometry['L1']) / dy)
-            y = int((velo[i, 0]-self.geometry['W1']) / dx)
-            z = int((velo[i, 2]-self.geometry['H1']) / dz)
+
+
+            x = int((velo[i, 1]- self.geometry['L1']) / dy)
+            y = int((velo[i, 0]- self.geometry['W1']) / dx)
+            z = int((velo[i, 2]- self.geometry['H1']) / dz)
             velo_processed[x, y, z] = 1
 
             velo_processed[x, y, -1] += velo[i, 3]
             intensity_map_count[x, y] += 1
-        velo_processed[:, :, -1] = np.divide(velo_processed[:, :, -1],  intensity_map_count,
-                                             where=intensity_map_count != 0)
+        velo_processed[:,:,-1] = np.where(intensity_map_count > 0, velo_processed[:, :, -1] / intensity_map_count, 0)
+        
+        # # velo_processed[:, :, -1] = np.divide(velo_processed[:, :, -1],  intensity_map_count,
+        # #                                      where=intensity_map_count != 0)
         return velo_processed
 
 
