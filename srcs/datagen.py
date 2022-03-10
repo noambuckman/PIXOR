@@ -220,8 +220,8 @@ class KITTI(Dataset):
             metric_x, metric_y = transform_label2metric(np.array(p, dtype=np.float32), self.geometry)
             
             actual_reg_target = np.copy(reg_target)
-            actual_reg_target[2] = reg_target[2] - metric_x
-            actual_reg_target[3] = reg_target[3] - metric_y
+            actual_reg_target[2] = reg_target[2] - metric_x #dx
+            actual_reg_target[3] = reg_target[3] - metric_y #dy
             actual_reg_target[4] = np.log(reg_target[4])
             actual_reg_target[5] = np.log(reg_target[5])
 
