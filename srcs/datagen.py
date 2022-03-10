@@ -330,7 +330,7 @@ class KITTI(Dataset):
 
     def lidar_preprocess(self, scan):
         velo_processed = np.zeros(self.geometry['input_shape'], dtype=np.float32)
-        intensity_map_count = np.zeros((velo_processed.shape[0], velo_processed.shape[1]),dtype=int)
+        intensity_map_count = np.zeros((velo_processed.shape[0], velo_processed.shape[1]), dtype=np.float32)
         velo = self.passthrough(scan)
         dx, dy, dz = get_discretization_from_geom(self.geometry, input_layer=True)
         for i in range(velo.shape[0]):
@@ -343,7 +343,7 @@ class KITTI(Dataset):
 
             velo_processed[x, y, -1] += float(velo[i, 3])
             intensity_map_count[x, y] += 1.0
-        velo_processed[:,:,-1] = np.where(intensity_map_count > 0, velo_processed[:, :, -1] / intensity_map_count, 0)
+        velo_processed[:,:,-1] = np.where(intensity_map_count > 0.01, velo_processed[:, :, -1] / intensity_map_count, 0)
         
         # # velo_processed[:, :, -1] = np.divide(velo_processed[:, :, -1],  intensity_map_count,
         # #                                      where=intensity_map_count != 0)
