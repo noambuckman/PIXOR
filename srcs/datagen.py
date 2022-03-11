@@ -356,7 +356,7 @@ class KITTI(Dataset):
 def get_data_loader(batch_size, use_npy, geometry=None, frame_range=10000, ignore_list=None, debug=False):
     if debug:
         use_npy = False
-    
+    print(debug)
     train_dataset = KITTI(frame_range, use_npy=use_npy, train=True, ignore_list=ignore_list, geometry=geometry)
     train_dataset.debug = debug
     train_dataset.load_velo()
