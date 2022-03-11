@@ -200,7 +200,7 @@ def train(exp_name, device, clip=True, debug=False):
     config["target_std_dev"] = target_std_dev.tolist()
     save_config(config, exp_name)
     print(config)
-    print(config["npy"])
+    print(config["use_npy"])
     net, loss_fn, optimizer, scheduler = build_model(config, device, train=True, target_mean=target_mean, target_std_dev=target_std_dev)
 
     # Tensorboard Logger
