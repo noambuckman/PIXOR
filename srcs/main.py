@@ -190,7 +190,7 @@ def train(exp_name, device, clip=True, debug=False):
 
     # Dataset and DataLoader
     train_data_loader, test_data_loader = get_data_loader(batch_size, config['use_npy'],
-                                        geometry=config['geometry'], frame_range=config['frame_range'], ignore_list=ignore_list, debug=True)
+                                        geometry=config['geometry'], frame_range=config['frame_range'], ignore_list=ignore_list, debug=debug)
     # Model
     target_mean = train_data_loader.dataset.target_mean
     target_std_dev = train_data_loader.dataset.target_std_dev
