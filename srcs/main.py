@@ -9,7 +9,8 @@ from torch.multiprocessing import Pool
 from loss import CustomLoss
 from datagen import get_data_loader, find_samples_without_labels
 from model import PIXOR
-from utils import get_model_name, load_config, save_config, get_logger, plot_bev, plot_label_map, plot_pr_curve, get_bev
+from logger import get_logger
+from utils import get_model_name, load_config, save_config, plot_bev, plot_label_map, plot_pr_curve, get_bev
 from postprocess import filter_pred, compute_matches, compute_ap
 
 

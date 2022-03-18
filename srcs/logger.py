@@ -1,7 +1,12 @@
 from torch.utils.tensorboard import SummaryWriter
-
 import numpy as np
-
+from datetime import datetime
+import os
+def get_logger(config, mode='train'):
+    folder = os.path.join('logs', config['name'], mode, datetime.now().strftime("%y%m%d_%H%M%S"))
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+    return Logger(folder)
 
 class Logger(object):
     def __init__(self, log_dir):
