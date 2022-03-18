@@ -328,7 +328,6 @@ def eval_one(net, loss_fn, config, loader, image_id, device, plot=False, verbose
     # Filter Predictions
     t_start = time.time()
     corners, scores = filter_pred(config, pred)
-    print(corners)
     t_post = time.time() - t_start
 
     if verbose:
