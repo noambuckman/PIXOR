@@ -7,7 +7,6 @@ import matplotlib.pyplot as plt
 import math
 import json
 import os
-import logger
 from shapely.geometry import Point, Polygon
 import copy as cp
 def transform_label2metric(label, geometry):
@@ -61,12 +60,7 @@ def maskFOV_on_BEV(shape, fov=88.0):
     in_fov = torch.from_numpy(in_fov.astype(np.float32))
 
     return in_fov
-from datetime import datetime
-def get_logger(config, mode='train'):
-    folder = os.path.join('logs', config['name'], mode, datetime.now().strftime("%y%m%d_%H%M%S"))
-    if not os.path.exists(folder):
-        os.makedirs(folder)
-    return logger.Logger(folder)
+
 
 def get_discretization_from_geom(geom, input_layer=True):
     ''' We assume the input shape has '''
